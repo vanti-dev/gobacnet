@@ -3,7 +3,7 @@ package encoding
 import (
 	"fmt"
 
-	"github.com/alexbeltran/gobacnet/types"
+	"github.com/vanti-dev/gobacnet/types"
 )
 
 func isValidObjectType(idType types.ObjectType) error {

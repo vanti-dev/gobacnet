@@ -20,10 +20,10 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/alexbeltran/gobacnet"
-	"github.com/alexbeltran/gobacnet/property"
-	"github.com/alexbeltran/gobacnet/types"
 	"github.com/spf13/cobra"
+	"github.com/vanti-dev/gobacnet"
+	"github.com/vanti-dev/gobacnet/property"
+	"github.com/vanti-dev/gobacnet/types"
 )
 
 // readmultipropCmd represents the readmultiprop command

@@ -1,4 +1,4 @@
-module github.com/alexbeltran/gobacnet
+module github.com/vanti-dev/gobacnet
 
 go 1.17
 

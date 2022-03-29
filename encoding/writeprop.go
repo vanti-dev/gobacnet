@@ -1,6 +1,6 @@
 package encoding
 
-import bactype "github.com/alexbeltran/gobacnet/types"
+import bactype "github.com/vanti-dev/gobacnet/types"
 
 // WriteProperty encodes a write property request
 func (e *Encoder) WriteProperty(invokeID uint8, data bactype.ReadPropertyData, priority uint) error {

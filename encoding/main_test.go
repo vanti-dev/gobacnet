@@ -35,7 +35,7 @@ import (
 	"reflect"
 	"testing"
 
-	bactype "github.com/alexbeltran/gobacnet/types"
+	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
 const compareErrFmt = "Mismatch in %s when decoding values. Expected: %d, received: %d"
@@ -265,7 +265,7 @@ func subTestReadPropertyAck(t *testing.T, rd bactype.ReadPropertyData) {
 	d := NewDecoder(b)
 
 	// Read Property reads 4 extra fields that are not original encoded. Need to
-	//find out where these 4 fields come from
+	// find out where these 4 fields come from
 	d.buff.Read(make([]uint8, 3))
 	var outRd bactype.ReadPropertyData
 	err := d.ReadProperty(&outRd)

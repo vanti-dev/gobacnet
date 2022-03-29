@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/alexbeltran/gobacnet"
-	"github.com/alexbeltran/gobacnet/property"
-	"github.com/alexbeltran/gobacnet/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/vanti-dev/gobacnet"
+	"github.com/vanti-dev/gobacnet/property"
+	"github.com/vanti-dev/gobacnet/types"
 )
 
 // writepropCmd represents the writeprop command

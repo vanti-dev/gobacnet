@@ -36,8 +36,8 @@ import (
 	"net"
 	"os"
 
-	"github.com/alexbeltran/gobacnet/encoding"
-	bactype "github.com/alexbeltran/gobacnet/types"
+	"github.com/vanti-dev/gobacnet/encoding"
+	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
 // Close free resources for the client. Always call this function when using NewClient

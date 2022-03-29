@@ -32,7 +32,7 @@ License.
 package encoding
 
 import (
-	bactype "github.com/alexbeltran/gobacnet/types"
+	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
 // NPDU encodes the network layer control message
@@ -173,7 +173,7 @@ func (n *NPDUMetadata) Priority() bactype.NPDUPriority {
 // SetPriority for NPDU
 func (n *NPDUMetadata) SetPriority(p bactype.NPDUPriority) {
 	// Clear the first two bits
-	//*n &= (0xF - 3)
+	// *n &= (0xF - 3)
 	*n |= NPDUMetadata(p)
 }
 

@@ -37,7 +37,7 @@ import (
 	"strings"
 	"testing"
 
-	bactype "github.com/alexbeltran/gobacnet/types"
+	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
 func TestReadPropertyService(t *testing.T) {
@@ -46,7 +46,7 @@ func TestReadPropertyService(t *testing.T) {
 		12, 0, 0, 0, 1, 25, 85}
 
 	e := NewEncoder()
-	//s := `{"ID":24289,"MaxAPDU":480,"Address":{"Mac":"ChQAzLrA","MacLen":6,"Net":2428,"Adr":"HQ==","AdrLen":1}}`
+	// s := `{"ID":24289,"MaxAPDU":480,"Address":{"Mac":"ChQAzLrA","MacLen":6,"Net":2428,"Adr":"HQ==","AdrLen":1}}`
 	var mac []uint8
 	var adr []uint8
 	json.Unmarshal([]byte("\"ChQAzLrA\""), &mac)
