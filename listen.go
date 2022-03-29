@@ -46,7 +46,7 @@ func (c *Client) Close() {
 		return
 	}
 	c.listener.Close()
-	if f, ok := c.log.Out.(*os.File); ok {
+	if f, ok := c.Log.Out.(*os.File); ok {
 		f.Close()
 	}
 }
@@ -59,7 +59,7 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 	dec := encoding.NewDecoder(b)
 	err := dec.BVLC(&header)
 	if err != nil {
-		c.log.Error(err)
+		c.Log.Error(err)
 		return
 	}
 
@@ -72,7 +72,7 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 		}
 
 		if npdu.IsNetworkLayerMessage {
-			c.log.Debug("Ignored Network Layer Message")
+			c.Log.Debug("Ignored Network Layer Message")
 			return
 		}
 
@@ -81,14 +81,14 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 		send := dec.Bytes()
 		err = dec.APDU(&apdu)
 		if err != nil {
-			c.log.Error("Issue decoding APDU: %v", err)
+			c.Log.Error("Issue decoding APDU: %v", err)
 			return
 		}
 
 		switch apdu.DataType {
 		case bactype.UnconfirmedServiceRequest:
 			if apdu.UnconfirmedService == bactype.ServiceUnconfirmedIAm {
-				c.log.Debug("Received IAm Message")
+				c.Log.Debug("Received IAm Message")
 				dec = encoding.NewDecoder(apdu.RawData)
 				var iam bactype.IAm
 
@@ -99,7 +99,7 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 				src.IP = src.IP.To4()
 				iam.Addr = bactype.UDPToAddress(src)
 				if err != nil {
-					c.log.Error(err)
+					c.Log.Error(err)
 					return
 				}
 				c.utsm.Publish(int(iam.ID.Instance), iam)
@@ -108,24 +108,24 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 				var low, high int32
 				dec.WhoIs(&low, &high)
 				// For now we are going to ignore who is request.
-				//log.WithFields(log.Fields{"low": low, "high": high}).Debug("WHO IS Request")
+				// Log.WithFields(Log.Fields{"low": low, "high": high}).Debug("WHO IS Request")
 			} else {
-				c.log.Errorf("Unconfirmed: %d %v", apdu.UnconfirmedService, apdu.RawData)
+				c.Log.Errorf("Unconfirmed: %d %v", apdu.UnconfirmedService, apdu.RawData)
 			}
 		case bactype.SimpleAck:
-			c.log.Debug("Received Simple Ack")
+			c.Log.Debug("Received Simple Ack")
 			err := c.tsm.Send(int(apdu.InvokeId), send)
 			if err != nil {
 				return
 			}
 		case bactype.ComplexAck:
-			c.log.Debug("Received Complex Ack")
+			c.Log.Debug("Received Complex Ack")
 			err := c.tsm.Send(int(apdu.InvokeId), send)
 			if err != nil {
 				return
 			}
 		case bactype.ConfirmedServiceRequest:
-			c.log.Debug("Received  Confirmed Service Request")
+			c.Log.Debug("Received  Confirmed Service Request")
 			err := c.tsm.Send(int(apdu.InvokeId), send)
 			if err != nil {
 				return
@@ -134,11 +134,11 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 			err := fmt.Errorf("Error Class %d Code %d", apdu.Error.Class, apdu.Error.Code)
 			err = c.tsm.Send(int(apdu.InvokeId), err)
 			if err != nil {
-				c.log.Debug("unable to send error to %d: %v", apdu.InvokeId, err)
+				c.Log.Debug("unable to send error to %d: %v", apdu.InvokeId, err)
 			}
 		default:
 			// Ignore it
-			//log.WithFields(log.Fields{"raw": b}).Debug("An ignored packet went through")
+			// Log.WithFields(Log.Fields{"raw": b}).Debug("An ignored packet went through")
 		}
 	}
 
@@ -147,7 +147,7 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 		// we will need to check it for any additional information we can gleam.
 		// NDPU has source
 		b = b[forwardHeaderLength:]
-		c.log.Debug("Ignored NDPU Forwarded")
+		c.Log.Debug("Ignored NDPU Forwarded")
 	}
 
 }
@@ -166,7 +166,7 @@ func (c *Client) listen() error {
 		b := make([]byte, 2048)
 		i, adr, err = c.listener.ReadFromUDP(b)
 		if err != nil {
-			c.log.Error(err)
+			c.Log.Error(err)
 			continue
 		}
 		go c.handleMsg(adr, b[:i])
