@@ -96,7 +96,7 @@ func NewClient(inter string, port int) (*Client, error) {
 	} else {
 		c.port = port
 	}
-	uni, err := i.Addrs()
+	uni, err := c.netInterface.Addrs()
 	if err != nil {
 		return c, err
 	}
