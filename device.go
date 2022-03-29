@@ -72,11 +72,25 @@ func getBroadcast(addr string) (net.IP, error) {
 // port.
 func NewClient(inter string, port int) (*Client, error) {
 	c := &Client{}
-	i, err := net.InterfaceByName(inter)
-	if err != nil {
-		return c, err
+	var networkInterface *net.Interface
+	if inter == "" {
+		i, err := net.Interfaces()
+		if err != nil {
+			return nil, err
+		}
+		if len(i) == 0 {
+			return nil, fmt.Errorf("no network interfaces fouund")
+		}
+		networkInterface = &i[0]
+	} else {
+		i, err := net.InterfaceByName(inter)
+		if err != nil {
+			return nil, err
+		}
+		networkInterface = i
 	}
-	c.netInterface = i
+
+	c.netInterface = networkInterface
 	if port == 0 {
 		c.port = DefaultPort
 	} else {
