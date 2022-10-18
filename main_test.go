@@ -110,6 +110,12 @@ func TestMac(t *testing.T) {
 }
 
 func TestServices(t *testing.T) {
+	t.Skip("Only supported when running a test server")
+
+	interfaceName, err := localInterfaceName()
+	if err != nil {
+		t.Fatal(err)
+	}
 	c, err := NewClient(interfaceName, DefaultPort)
 	if err != nil {
 		t.Fatal(err)
