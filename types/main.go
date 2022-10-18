@@ -155,7 +155,8 @@ func (a *Address) UDPAddr() (net.UDPAddr, error) {
 	}, nil
 }
 
-// Address converts a given udp address into a bacnet address
+// UDPToAddress converts a given udp address into a bacnet address.
+// Only IPv4 addresses are supported
 func UDPToAddress(n *net.UDPAddr) Address {
 	a := Address{}
 	p := uint16(n.Port)
@@ -164,9 +165,7 @@ func UDPToAddress(n *net.UDPAddr) Address {
 	length := net.IPv4len + 2
 	a.Mac = make([]uint8, length)
 	//Encode ip
-	for i := 0; i < net.IPv4len; i++ {
-		a.Mac[i] = n.IP[i]
-	}
+	copy(a.Mac, n.IP.To4())
 
 	// Encode port
 	a.Mac[net.IPv4len+0] = uint8(p >> 8)
