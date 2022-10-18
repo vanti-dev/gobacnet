@@ -62,6 +62,10 @@ func (e *Encoder) Bytes() []byte {
 	return e.buff.Bytes()
 }
 
+func (e *Encoder) Len() int {
+	return e.buff.Len()
+}
+
 func (e *Encoder) write(p interface{}) {
 	if e.err != nil {
 		return
