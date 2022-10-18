@@ -129,3 +129,21 @@ func (c *Client) sendReadMultipleProperty(id int, dev bactype.Device, request []
 	}
 	return out, err
 }
+
+// ReadProperties uses ReadMultiProperty if available or falls back to ReadProperty if not.
+func (c *Client) ReadProperties(dev bactype.Device, property bactype.ReadMultipleProperty) (bactype.ReadMultipleProperty, error) {
+	res, err := c.ReadMultiProperty(dev, property)
+	if err == nil {
+		return res, nil
+	}
+
+	// todo: be more careful retrying only when we think it might succeed - e.g. check for "service not supported"
+	for i, object := range property.Objects {
+		propRes, err := c.ReadProperty(dev, bactype.ReadPropertyData{Object: object})
+		if err != nil {
+			return res, err
+		}
+		res.Objects[i] = propRes.Object
+	}
+	return res, nil
+}
