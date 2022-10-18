@@ -33,7 +33,9 @@ package gobacnet
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"net"
 	"testing"
 
 	"github.com/vanti-dev/gobacnet/property"
@@ -44,17 +46,35 @@ import (
 const interfaceName = "eth0"
 const testServer = 1234
 
-// TestMain are general test
-func TestMain(t *testing.T) {
+func localInterfaceName() (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", fmt.Errorf("net.Interfaces() %w", err)
+	}
+	for _, iface := range interfaces {
+		if iface.Flags&net.FlagLoopback > 0 {
+			return iface.Name, nil
+		}
+	}
+
+	return interfaceName, nil
+}
+
+// TestNewClient are general test
+func TestNewClient(t *testing.T) {
+	interfaceName, err := localInterfaceName()
+	if err != nil {
+		t.Fatalf("getting local interface: %v", err)
+	}
 	c, err := NewClient(interfaceName, DefaultPort)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("NewClient: %v", err)
 	}
 	c.Close()
 
 	d, err := NewClient("pizzainterfacenotreal", DefaultPort)
-	d.Close()
 	if err == nil {
+		d.Close()
 		t.Fatal("Successfully passed a false interface.")
 	}
 }
