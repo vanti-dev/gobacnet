@@ -42,7 +42,7 @@ func (e *Encoder) readPropertyHeader(tagPos uint8, data bactype.ReadPropertyData
 	if err := isValidObjectType(data.Object.ID.Type); err != nil {
 		return 0, err
 	}
-	if err := isValidPropertyType(data.Object.Properties[0].Type); err != nil {
+	if err := isValidPropertyType(data.Object.Properties[0].ID); err != nil {
 		return 0, err
 	}
 
@@ -52,7 +52,7 @@ func (e *Encoder) readPropertyHeader(tagPos uint8, data bactype.ReadPropertyData
 
 	// Get first property
 	prop := data.Object.Properties[0]
-	e.contextPropertyID(tagPos, prop.Type)
+	e.contextPropertyID(tagPos, prop.ID)
 	tagPos++
 
 	// Optional Tag - Array Index
@@ -142,7 +142,7 @@ func (d *Decoder) ReadProperty(data *bactype.ReadPropertyData) error {
 	lenValue := d.value(meta)
 
 	var prop bactype.Property
-	prop.Type = d.propertyId(int(lenValue))
+	prop.ID = d.propertyId(int(lenValue))
 
 	if d.len() != 0 {
 		tag, meta = d.tagNumber()

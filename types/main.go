@@ -62,7 +62,7 @@ type Object struct {
 }
 
 type Property struct {
-	Type       property.ID
+	ID         property.ID
 	ArrayIndex uint32
 	Data       interface{}
 }

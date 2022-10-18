@@ -1,4 +1,5 @@
-/*Copyright (C) 2017 Alex Beltran
+/*
+Copyright (C) 2017 Alex Beltran
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -59,7 +60,7 @@ func TestReadPropertyService(t *testing.T) {
 			},
 			Properties: []bactype.Property{
 				bactype.Property{
-					Type:       85,
+					ID:         85,
 					ArrayIndex: ArrayAll,
 				},
 			},
@@ -209,27 +210,27 @@ func TestRealDataIAm(t *testing.T) {
 }
 
 /*
-func TestIAm(t *testing.T) {
-	ids := []bactype.ObjectID{
-		bactype.ObjectID{Instance: 1, Type: 5},
-		bactype.ObjectID{Instance: 99, Type: 6},
-		bactype.ObjectID{Instance: 133, Type: 1},
-	}
-	enc := NewEncoder()
-	err := enc.IAm(ids)
-	if err != nil {
-		t.Fatal(err)
-	}
+	func TestIAm(t *testing.T) {
+		ids := []bactype.ObjectID{
+			bactype.ObjectID{Instance: 1, Type: 5},
+			bactype.ObjectID{Instance: 99, Type: 6},
+			bactype.ObjectID{Instance: 133, Type: 1},
+		}
+		enc := NewEncoder()
+		err := enc.IAm(ids)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	dec := NewDecoder(enc.Bytes())
+		dec := NewDecoder(enc.Bytes())
 
-	decIds := make([]bactype.ObjectID, len(ids))
-	err = dec.IAm(decIds[:])
+		decIds := make([]bactype.ObjectID, len(ids))
+		err = dec.IAm(decIds[:])
 
-	equal := reflect.DeepEqual(ids, decIds)
-	if !equal {
-		t.Errorf("Encoding/Decoding Failed: %v does not equal %v", ids, decIds)
-	}
+		equal := reflect.DeepEqual(ids, decIds)
+		if !equal {
+			t.Errorf("Encoding/Decoding Failed: %v does not equal %v", ids, decIds)
+		}
 
 }
 */
@@ -253,7 +254,7 @@ func TestReadMultiple(t *testing.T) {
 		for _, prop := range obj.Properties {
 			name, ok := prop.Data.(string)
 			if !ok {
-				t.Fatalf("Type mismatch. Type should be string, it is %T", prop.Data)
+				t.Fatalf("ID mismatch. ID should be string, it is %T", prop.Data)
 			}
 			if strings.Compare(name, names[counter]) > 0 {
 				t.Fatalf("Object name should be \"%s\" not \"%s\"", names[counter], name)

@@ -45,7 +45,7 @@ func (e *Encoder) properties(properties []bactype.Property) error {
 	for _, prop := range properties {
 		// Tag 0 - Property ID
 		tag = 0
-		e.contextPropertyID(tag, prop.Type)
+		e.contextPropertyID(tag, prop.ID)
 
 		// Tag 1 (OPTIONAL) - Array Length
 		if prop.ArrayIndex != ArrayAll {

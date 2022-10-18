@@ -103,7 +103,7 @@ func (rp ReadMultipleProperty) String() string {
 		buff.WriteString("\n")
 		for _, prop := range obj.Properties {
 			buff.WriteString(spacing)
-			buff.WriteString(property.String(prop.Type))
+			buff.WriteString(property.String(prop.ID))
 			buff.WriteString(fmt.Sprintf("[%v]", prop.ArrayIndex))
 			buff.WriteString(": ")
 			buff.WriteString(fmt.Sprintf("%v", prop.Data))

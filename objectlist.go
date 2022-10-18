@@ -13,7 +13,7 @@ func (c *Client) objectListLen(dev bactype.Device) (int, error) {
 			ID: dev.ID,
 			Properties: []bactype.Property{
 				bactype.Property{
-					Type:       property.ObjectList,
+					ID:         property.ObjectList,
 					ArrayIndex: 0,
 				},
 			},
@@ -47,7 +47,7 @@ func (c *Client) objectsRange(dev bactype.Device, start, end int) ([]bactype.Obj
 
 	for i := start; i <= end; i++ {
 		rpm.Objects[0].Properties = append(rpm.Objects[0].Properties, bactype.Property{
-			Type:       property.ObjectList,
+			ID:         property.ObjectList,
 			ArrayIndex: uint32(i),
 		})
 	}
@@ -137,11 +137,11 @@ func (c *Client) objectInformation(dev *bactype.Device, objs []bactype.Object) e
 			ID: o.ID,
 			Properties: []bactype.Property{
 				bactype.Property{
-					Type:       property.ObjectName,
+					ID:         property.ObjectName,
 					ArrayIndex: bactype.ArrayAll,
 				},
 				bactype.Property{
-					Type:       property.Description,
+					ID:         property.Description,
 					ArrayIndex: bactype.ArrayAll,
 				},
 			},

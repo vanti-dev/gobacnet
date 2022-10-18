@@ -21,9 +21,9 @@ func (c *Client) RemoteDevices(addr types.Address, ids ...types.ObjectInstance) 
 		oid := types.ObjectID{Type: types.DeviceType, Instance: id}
 		req.Objects = append(req.Objects,
 			types.Object{ID: oid, Properties: []types.Property{
-				{Type: property.MaxApduLengthAccepted, ArrayIndex: ArrayAll},
-				{Type: property.SegmentationSupported, ArrayIndex: ArrayAll},
-				{Type: property.VendorIdentifier, ArrayIndex: ArrayAll},
+				{ID: property.MaxApduLengthAccepted, ArrayIndex: ArrayAll},
+				{ID: property.SegmentationSupported, ArrayIndex: ArrayAll},
+				{ID: property.VendorIdentifier, ArrayIndex: ArrayAll},
 			}},
 		)
 	}

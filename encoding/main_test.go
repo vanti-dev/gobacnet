@@ -285,7 +285,7 @@ func TestReadAckProperty(t *testing.T) {
 			},
 			Properties: []bactype.Property{
 				bactype.Property{
-					Type:       3921,
+					ID:         3921,
 					ArrayIndex: ArrayAll,
 					Data:       data,
 				},
@@ -309,7 +309,7 @@ func TestReadProperty(t *testing.T) {
 			},
 			Properties: []bactype.Property{
 				bactype.Property{
-					Type:       3921,
+					ID:         3921,
 					ArrayIndex: ArrayAll,
 				},
 			},

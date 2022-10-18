@@ -122,7 +122,7 @@ func writeProp(cmd *cobra.Command, args []string) {
 			},
 			Properties: []types.Property{
 				types.Property{
-					Type:       propInt,
+					ID:         propInt,
 					ArrayIndex: arrayIndex,
 				},
 			},
@@ -136,7 +136,7 @@ func writeProp(cmd *cobra.Command, args []string) {
 		out, err := c.ReadProperty(dest, rp)
 
 		if err != nil {
-			if rp.Object.Properties[0].Type == property.ObjectList {
+			if rp.Object.Properties[0].ID == property.ObjectList {
 				log.Error("Note: ObjectList reads may need to be broken up into multiple reads due to length. Read index 0 for array length")
 			}
 			log.Fatal(err)

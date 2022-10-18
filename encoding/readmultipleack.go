@@ -42,7 +42,7 @@ func (e *Encoder) propertiesWithData(properties []bactype.Property) error {
 	for _, prop := range properties {
 		// Tag 2 - Property ID
 		tag = 2
-		e.contextPropertyID(tag, prop.Type)
+		e.contextPropertyID(tag, prop.ID)
 
 		// Tag 3 (OPTIONAL) - Array Length
 		tag++
@@ -136,7 +136,7 @@ func (d *Decoder) objectsWithData(objects *[]bactype.Object) error {
 				return &ErrorIncorrectTag{Expected: expectedTag, Given: tag}
 			}
 			prop := bactype.Property{}
-			prop.Type = d.propertyId(int(length))
+			prop.ID = d.propertyId(int(length))
 
 			// Tag 3 - (Optional) Array Length
 			tag, meta = d.tagNumber()

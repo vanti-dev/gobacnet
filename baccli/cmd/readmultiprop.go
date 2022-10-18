@@ -67,7 +67,7 @@ func readMulti(cmd *cobra.Command, args []string) {
 				},
 				Properties: []types.Property{
 					types.Property{
-						Type:       property.ObjectList,
+						ID:         property.ObjectList,
 						ArrayIndex: gobacnet.ArrayAll,
 					},
 				},
@@ -97,11 +97,11 @@ func readMulti(cmd *cobra.Command, args []string) {
 
 			rpm.Objects[i].Properties = []types.Property{
 				types.Property{
-					Type:       property.ObjectName,
+					ID:         property.ObjectName,
 					ArrayIndex: gobacnet.ArrayAll,
 				},
 				types.Property{
-					Type:       property.Description,
+					ID:         property.Description,
 					ArrayIndex: gobacnet.ArrayAll,
 				},
 			}

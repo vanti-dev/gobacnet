@@ -146,7 +146,7 @@ func testReadPropertyService(c *Client, t *testing.T) {
 			},
 			Properties: []types.Property{
 				types.Property{
-					Type:       property.ObjectName, // Present value
+					ID:         property.ObjectName, // Present value
 					ArrayIndex: ArrayAll,
 				},
 			},
@@ -187,7 +187,7 @@ func testWritePropertyService(c *Client, t *testing.T) {
 			},
 			Properties: []types.Property{
 				types.Property{
-					Type:       property.ObjectName, // Present value
+					ID:         property.ObjectName, // Present value
 					ArrayIndex: ArrayAll,
 				},
 			},
