@@ -88,7 +88,6 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 		switch apdu.DataType {
 		case bactype.UnconfirmedServiceRequest:
 			if apdu.UnconfirmedService == bactype.ServiceUnconfirmedIAm {
-				c.Log.Debug("Received IAm Message")
 				dec = encoding.NewDecoder(apdu.RawData)
 				var iam bactype.IAm
 
@@ -98,6 +97,7 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 				// we set the type.
 				src.IP = src.IP.To4()
 				iam.Addr = bactype.UDPToAddress(src)
+				c.Log.Debugf("Received IAm Message %+v", iam)
 				if err != nil {
 					c.Log.Error(err)
 					return

@@ -35,6 +35,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/vanti-dev/gobacnet/property"
 
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
@@ -139,6 +140,10 @@ func (d *Decoder) objectId() (objectType bactype.ObjectType, instance bactype.Ob
 
 func (d *Decoder) enumerated(len int) uint32 {
 	return d.unsigned(len)
+}
+
+func (d *Decoder) propertyId(len int) property.ID {
+	return property.ID(d.unsigned(len))
 }
 
 func (d *Decoder) unsigned24() uint32 {

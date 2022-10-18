@@ -61,7 +61,7 @@ func init() {
 	writepropCmd.Flags().IntVarP(&objectID, "objectID", "o", 1234, "object ID")
 	writepropCmd.Flags().IntVarP(&objectType, "objectType", "j", 8, "object type")
 	writepropCmd.Flags().StringVarP(&propertyType, "property", "t",
-		property.ObjectNameStr, propertyTypeDescr)
+		property.ObjectName.String(), propertyTypeDescr)
 	writepropCmd.Flags().StringVarP(&targetValue, "value", "v",
 		"", "value that will be set")
 
@@ -98,10 +98,10 @@ func writeProp(cmd *cobra.Command, args []string) {
 
 	dest := resp[0]
 
-	var propInt uint32
+	var propInt property.ID
 	// Check to see if an int was passed
 	if i, err := strconv.Atoi(propertyType); err == nil {
-		propInt = uint32(i)
+		propInt = property.ID(uint32(i))
 	} else {
 		propInt, err = property.Get(propertyType)
 	}

@@ -75,10 +75,10 @@ func readProp(cmd *cobra.Command, args []string) {
 
 	dest := resp[0]
 
-	var propInt uint32
+	var propInt property.ID
 	// Check to see if an int was passed
 	if i, err := strconv.Atoi(propertyType); err == nil {
-		propInt = uint32(i)
+		propInt = property.ID(uint32(i))
 	} else {
 		propInt, err = property.Get(propertyType)
 	}
@@ -133,7 +133,7 @@ func init() {
 	readpropCmd.Flags().IntVarP(&objectID, "objectID", "o", 1234, "object ID")
 	readpropCmd.Flags().IntVarP(&objectType, "objectType", "j", 8, "object type")
 	readpropCmd.Flags().StringVarP(&propertyType, "property", "t",
-		property.ObjectNameStr, propertyTypeDescr)
+		property.ObjectName.String(), propertyTypeDescr)
 
 	readpropCmd.Flags().Uint32Var(&arrayIndex, "index", gobacnet.ArrayAll, "Which position to return.")
 

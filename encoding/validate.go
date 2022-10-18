@@ -2,6 +2,7 @@ package encoding
 
 import (
 	"fmt"
+	"github.com/vanti-dev/gobacnet/property"
 
 	"github.com/vanti-dev/gobacnet/types"
 )
@@ -13,7 +14,7 @@ func isValidObjectType(idType types.ObjectType) error {
 	return nil
 }
 
-func isValidPropertyType(propType uint32) error {
+func isValidPropertyType(propType property.ID) error {
 	if propType > MaxPropertyID {
 		return fmt.Errorf("Object types is %d which must be less then %d", propType, MaxPropertyID)
 	}

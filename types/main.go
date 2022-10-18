@@ -34,6 +34,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/vanti-dev/gobacnet/property"
 	"net"
 )
 
@@ -61,7 +62,7 @@ type Object struct {
 }
 
 type Property struct {
-	Type       uint32
+	Type       property.ID
 	ArrayIndex uint32
 	Data       interface{}
 }

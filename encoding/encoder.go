@@ -34,6 +34,7 @@ package encoding
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/vanti-dev/gobacnet/property"
 
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
@@ -147,8 +148,8 @@ func (e *Encoder) tag(tg tagInfo) {
 	}
 }
 
-/* from clause 20.2.14 Encoding of an Object Identifier Value
-returns the number of apdu bytes consumed */
+// from clause 20.2.14 Encoding of an Object Identifier Value
+// returns the number of apdu bytes consumed
 func (e *Encoder) objectId(objectType bactype.ObjectType, instance bactype.ObjectInstance) {
 	var value uint32
 	value = ((uint32(objectType) & MaxObject) << InstanceBits) | (uint32(instance) & MaxInstance)
@@ -157,6 +158,10 @@ func (e *Encoder) objectId(objectType bactype.ObjectType, instance bactype.Objec
 
 func (e *Encoder) contextEnumerated(tagNumber uint8, value uint32) {
 	e.contextUnsigned(tagNumber, value)
+}
+
+func (e *Encoder) contextPropertyID(tagNumber uint8, value property.ID) {
+	e.contextUnsigned(tagNumber, uint32(value))
 }
 
 func (e *Encoder) contextUnsigned(tagNumber uint8, value uint32) {
