@@ -87,10 +87,10 @@ func readMulti(cmd *cobra.Command, args []string) {
 
 		rpm := types.ReadMultipleProperty{}
 		rpm.Objects = make([]types.Object, len(ids))
-		for i, raw_id := range ids {
-			id, ok := raw_id.(types.ObjectID)
+		for i, rawID := range ids {
+			id, ok := rawID.(types.ObjectID)
 			if !ok {
-				log.Println("Unable to read object id %v", raw_id)
+				log.Printf("Unable to read object id %v", rawID)
 				return
 			}
 			rpm.Objects[i].ID = id
