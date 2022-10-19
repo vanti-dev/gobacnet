@@ -34,6 +34,7 @@ package gobacnet
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/vanti-dev/gobacnet/types/objecttype"
 	"log"
 	"net"
 	"testing"
@@ -141,7 +142,7 @@ func testReadPropertyService(c *Client, t *testing.T) {
 	read := types.ReadPropertyData{
 		Object: types.Object{
 			ID: types.ObjectID{
-				Type:     types.AnalogValue,
+				Type:     objecttype.AnalogValue,
 				Instance: 1,
 			},
 			Properties: []types.Property{
@@ -182,7 +183,7 @@ func testWritePropertyService(c *Client, t *testing.T) {
 	wp := types.ReadPropertyData{
 		Object: types.Object{
 			ID: types.ObjectID{
-				Type:     types.AnalogValue,
+				Type:     objecttype.AnalogValue,
 				Instance: 1,
 			},
 			Properties: []types.Property{

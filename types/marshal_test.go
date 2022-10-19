@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"github.com/vanti-dev/gobacnet/types/objecttype"
 	"reflect"
 	"testing"
 )
@@ -10,11 +11,11 @@ import (
 // custom logic in it so we want to make sure it works.
 func TestMarshal(t *testing.T) {
 	test := ObjectMap{
-		AnalogInput:  make(map[ObjectInstance]Object),
-		BinaryOutput: make(map[ObjectInstance]Object),
+		objecttype.AnalogInput:  make(map[ObjectInstance]Object),
+		objecttype.BinaryOutput: make(map[ObjectInstance]Object),
 	}
-	test[AnalogInput][0] = Object{Name: "Pizza Sensor"}
-	test[BinaryOutput][4] = Object{Name: "Should I Eat Pizza Sensor"}
+	test[objecttype.AnalogInput][0] = Object{Name: "Pizza Sensor"}
+	test[objecttype.BinaryOutput][4] = Object{Name: "Should I Eat Pizza Sensor"}
 	b, err := json.Marshal(test)
 	if err != nil {
 		t.Fatal(err)
@@ -27,7 +28,7 @@ func TestMarshal(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(test, out) {
-		t.Fatal("Encoding/decoding Object map is not equal")
+		t.Fatalf("Encoding/decoding Object map is not equal. want %+v, got %+v", test, out)
 	}
 
 }

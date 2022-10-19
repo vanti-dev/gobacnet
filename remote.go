@@ -3,6 +3,7 @@ package gobacnet
 import (
 	"github.com/vanti-dev/gobacnet/property"
 	"github.com/vanti-dev/gobacnet/types"
+	"github.com/vanti-dev/gobacnet/types/objecttype"
 )
 
 // RemoteDevices is like WhoIs but does not use broadcast.
@@ -18,7 +19,7 @@ func (c *Client) RemoteDevices(addr types.Address, ids ...types.ObjectInstance) 
 	}
 	req := types.ReadMultipleProperty{}
 	for _, id := range ids {
-		oid := types.ObjectID{Type: types.DeviceType, Instance: id}
+		oid := types.ObjectID{Type: objecttype.Device, Instance: id}
 		req.Objects = append(req.Objects,
 			types.Object{ID: oid, Properties: []types.Property{
 				{ID: property.MaxApduLengthAccepted, ArrayIndex: ArrayAll},

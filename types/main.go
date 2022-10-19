@@ -35,11 +35,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/vanti-dev/gobacnet/property"
+	"github.com/vanti-dev/gobacnet/types/objecttype"
 	"net"
 )
 
 type Enumerated uint32
-type ObjectType uint16
+type ObjectType = objecttype.ObjectType
 type ObjectInstance uint32
 
 // Null is used when a value is empty.
@@ -209,7 +210,7 @@ func (om ObjectMap) UnmarshalJSON(data []byte) error {
 	}
 
 	for t, sub := range m {
-		key := GetType(t)
+		key := objecttype.FromString(t)
 		if om[key] == nil {
 			om[key] = make(map[ObjectInstance]Object)
 		}
