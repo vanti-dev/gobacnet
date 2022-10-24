@@ -1,7 +1,14 @@
 package objecttype
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
+// stringToObjectType holds a mapping from the string representation of an ObjectType back to that object type.
+// The key is the value returned by ObjectType.String lower-case with punctuation removed.
+//
+//	Analog Value, analog-value, ANALOG_VALUE => analogvalue
 var stringToObjectType map[string]ObjectType
 
 func init() {
@@ -10,16 +17,20 @@ func init() {
 		ot := ObjectType(i)
 		s := ot.String()
 		if !strings.HasPrefix(s, "ObjectType(") {
-			stringToObjectType[s] = ot
+			stringToObjectType[encodeKey(s)] = ot
 		}
 	}
 }
 
-// FromString returns an ObjectType whose ObjectType.String matches s exactly.
-// If none do then
-func FromString(s string) ObjectType {
-	if ot, ok := stringToObjectType[s]; ok {
-		return ot
-	}
-	return ObjectType(0)
+// FromString returns an ObjectType whose ObjectType.String matches s ignoring case and non-alphanumeric characters.
+// If none do then returns ObjectType(0) and false.
+func FromString(s string) (ObjectType, bool) {
+	o, ok := stringToObjectType[encodeKey(s)]
+	return o, ok
+}
+
+var nonWordRegex = regexp.MustCompile(`[^0-9a-z]+`) // applied against a lowercase string
+func encodeKey(val string) string {
+	val = strings.ToLower(val)
+	return nonWordRegex.ReplaceAllString(val, "")
 }

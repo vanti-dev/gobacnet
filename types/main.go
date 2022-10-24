@@ -210,7 +210,7 @@ func (om ObjectMap) UnmarshalJSON(data []byte) error {
 	}
 
 	for t, sub := range m {
-		key := objecttype.FromString(t)
+		key, _ := objecttype.FromString(t)
 		if om[key] == nil {
 			om[key] = make(map[ObjectInstance]Object)
 		}
