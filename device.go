@@ -164,7 +164,7 @@ func (c *Client) localAddress() (la bactype.Address, err error) {
 	return la, nil
 }
 
-func (c *Client) localUDPAddress() (*net.UDPAddr, error) {
+func (c *Client) LocalUDPAddress() (*net.UDPAddr, error) {
 	ip, _, _ := net.ParseCIDR(c.myAddress)
 	netstr := fmt.Sprintf("%s:%d", ip.String(), c.port)
 	return net.ResolveUDPAddr("udp4", netstr)

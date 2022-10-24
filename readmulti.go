@@ -59,7 +59,7 @@ func (c *Client) ReadMultiProperty(dev bactype.Device, rp bactype.ReadMultiplePr
 	}
 	defer c.tsm.Put(id)
 
-	udp, err := c.localUDPAddress()
+	udp, err := c.LocalUDPAddress()
 	if err != nil {
 		return out, err
 	}

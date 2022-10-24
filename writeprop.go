@@ -18,7 +18,7 @@ func (c *Client) WriteProperty(dest bactype.Device, wp bactype.ReadPropertyData,
 	}
 	defer c.tsm.Put(id)
 
-	udp, err := c.localUDPAddress()
+	udp, err := c.LocalUDPAddress()
 	if err != nil {
 		return err
 	}

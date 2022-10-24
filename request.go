@@ -51,7 +51,7 @@ func (c *Client) ReadProperty(dest bactype.Device, rp bactype.ReadPropertyData) 
 	}
 	defer c.tsm.Put(id)
 
-	udp, err := c.localUDPAddress()
+	udp, err := c.LocalUDPAddress()
 	if err != nil {
 		return bactype.ReadPropertyData{}, err
 	}
