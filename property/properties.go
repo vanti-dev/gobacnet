@@ -1,6 +1,9 @@
 package property
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 //go:generate go run golang.org/x/tools/cmd/stringer@latest -type=ID
 
@@ -463,7 +466,15 @@ const (
 	SubordinateRelationships         ID = 489
 	DefaultSubordinateRelationship   ID = 490
 	Represents                       ID = 491
+
+	// nextID should always be 1 more than the largest id from the above
+	nextID = 492
 )
+
+// Known returns whether the ID is a known type, aka there exists an ID property for it.
+func Known(p ID) bool {
+	return p < nextID && !strings.HasPrefix(p.String(), "ID(")
+}
 
 // enumMapping contains properties we can get by string.
 // This is used by the cli to convert requests to read named properties into their property ids via Get.

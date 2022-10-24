@@ -74,3 +74,9 @@ const (
 	// nextObjectType should always be 1 more than the greatest id number from the list above
 	nextObjectType = 63
 )
+
+// Known returns whether the ObjectType is a known type, aka there exists an ObjectType property for it.
+func Known(t ObjectType) bool {
+	return t < nextObjectType &&
+		t != 38 // removed
+}
