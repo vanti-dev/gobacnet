@@ -136,14 +136,16 @@ func (c *Client) ReadProperties(dev bactype.Device, property bactype.ReadMultipl
 	if err == nil {
 		return res, nil
 	}
+	var out bactype.ReadMultipleProperty
+	out.Objects = make([]bactype.Object, len(property.Objects))
 
 	// todo: be more careful retrying only when we think it might succeed - e.g. check for "service not supported"
 	for i, object := range property.Objects {
 		propRes, err := c.ReadProperty(dev, bactype.ReadPropertyData{Object: object})
 		if err != nil {
-			return res, err
+			return bactype.ReadMultipleProperty{}, err
 		}
-		res.Objects[i] = propRes.Object
+		out.Objects[i] = propRes.Object
 	}
-	return res, nil
+	return out, nil
 }

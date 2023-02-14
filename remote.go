@@ -1,6 +1,8 @@
 package gobacnet
 
 import (
+	"fmt"
+
 	"github.com/vanti-dev/gobacnet/property"
 	"github.com/vanti-dev/gobacnet/types"
 	"github.com/vanti-dev/gobacnet/types/objecttype"
@@ -34,6 +36,9 @@ func (c *Client) RemoteDevices(addr types.Address, ids ...types.ObjectInstance) 
 	}
 	devices := make([]types.Device, len(res.Objects))
 	for i, object := range res.Objects {
+		if len(object.Properties) != 3 {
+			return nil, fmt.Errorf("expected three object properties, got %d for %s", len(object.Properties), object.ID)
+		}
 		device := types.Device{Addr: addr, ID: object.ID}
 		maxApduProp, segProp, vendoProp := object.Properties[0], object.Properties[1], object.Properties[2]
 		device.MaxApdu = maxApduProp.Data.(uint32)
