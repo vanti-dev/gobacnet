@@ -32,6 +32,7 @@ License.
 package gobacnet
 
 import (
+	"context"
 	"net"
 
 	"github.com/vanti-dev/gobacnet/encoding"
@@ -42,7 +43,9 @@ import (
 // Use constant ArrayAll for both fields to scan the entire network at once.
 // Using ArrayAll is highly discouraged for most networks since it can lead
 // to a high congested network.
-func (c *Client) WhoIs(low, high int) ([]types.Device, error) {
+//
+// note this has an implicit context timeout based on options passed to Client
+func (c *Client) WhoIs(ctx context.Context, low, high int) ([]types.Device, error) {
 	dest := types.UDPToAddress(&net.UDPAddr{
 		IP:   c.broadcastAddress,
 		Port: DefaultPort,
@@ -86,7 +89,7 @@ func (c *Client) WhoIs(low, high int) ([]types.Device, error) {
 		_, err = c.send(dest, enc.Bytes())
 		errChan <- err
 	}()
-	values, err := c.utsm.Subscribe(start, end)
+	values, err := c.utsm.Subscribe(ctx, start, end)
 	if err != nil {
 		return nil, err
 	}

@@ -81,12 +81,13 @@ func (s *subscriber) getTimeout() time.Duration {
 }
 
 // Subscribe receives data meant for ids that fall between the start and end range.
-func (m *Manager) Subscribe(start int, end int, options ...SubscriberOption) ([]interface{}, error) {
+// note this has an implicit context timeout based on options passed to Client
+func (m *Manager) Subscribe(ctx context.Context, start int, end int, options ...SubscriberOption) ([]interface{}, error) {
 	var store []interface{}
 	s := m.newSubscriber(start, end, options)
 	defer m.removeSubscriber(s)
 
-	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	ctx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
 	for {

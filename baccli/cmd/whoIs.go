@@ -14,11 +14,14 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
+
 	"github.com/vanti-dev/gobacnet"
 )
 
@@ -43,7 +46,9 @@ func main(cmd *cobra.Command, args []string) {
 	}
 	defer c.Close()
 
-	ids, err := c.WhoIs(startRange, endRange)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	ids, err := c.WhoIs(ctx, startRange, endRange)
 	if err != nil {
 		log.Fatal(err)
 	}

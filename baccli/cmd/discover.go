@@ -137,7 +137,7 @@ func discover(cmd *cobra.Command, args []string) {
 		startRange = i * incr
 		endRange = min((i+1)*incr-1, types.MaxInstance)
 		log.Infof("Scanning %d to %d", startRange, endRange)
-		scanned, err := c.WhoIs(startRange, endRange)
+		scanned, err := c.WhoIs(ctx, startRange, endRange)
 		if err != nil {
 			log.Error(err)
 			continue

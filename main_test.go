@@ -141,7 +141,9 @@ func TestServices(t *testing.T) {
 }
 
 func testReadPropertyService(c *Client, t *testing.T) {
-	dev, err := c.WhoIs(testServer, testServer)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	dev, err := c.WhoIs(ctx, testServer, testServer)
 	read := types.ReadPropertyData{
 		Object: types.Object{
 			ID: types.ObjectID{
@@ -159,8 +161,6 @@ func testReadPropertyService(c *Client, t *testing.T) {
 	if len(dev) == 0 {
 		t.Fatalf("Unable to find device id %d", testServer)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
 	resp, err := c.ReadProperty(ctx, dev[0], read)
 	if err != nil {
 		t.Fatal(err)
@@ -169,7 +169,9 @@ func testReadPropertyService(c *Client, t *testing.T) {
 }
 
 func testWhoIs(c *Client, t *testing.T) {
-	dev, err := c.WhoIs(testServer-1, testServer+1)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	dev, err := c.WhoIs(ctx, testServer-1, testServer+1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -182,8 +184,10 @@ func testWhoIs(c *Client, t *testing.T) {
 // value, read the property to make sure the name was changed, revert back, and
 // ensure that the revert was successful
 func testWritePropertyService(c *Client, t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 	const targetName = "Hotdog"
-	dev, err := c.WhoIs(testServer, testServer)
+	dev, err := c.WhoIs(ctx, testServer, testServer)
 	wp := types.ReadPropertyData{
 		Object: types.Object{
 			ID: types.ObjectID{
@@ -202,8 +206,6 @@ func testWritePropertyService(c *Client, t *testing.T) {
 	if len(dev) == 0 {
 		t.Fatalf("Unable to find device id %d", testServer)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
 	resp, err := c.ReadProperty(ctx, dev[0], wp)
 	if err != nil {
 		t.Fatal(err)

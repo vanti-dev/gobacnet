@@ -89,8 +89,11 @@ func writeProp(cmd *cobra.Command, args []string) {
 	}
 	defer c.Close()
 
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
 	// We need the actual address of the device first.
-	resp, err := c.WhoIs(deviceID, deviceID)
+	resp, err := c.WhoIs(ctx, deviceID, deviceID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,9 +134,6 @@ func writeProp(cmd *cobra.Command, args []string) {
 			},
 		},
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
 
 	var wp interface{}
 	if isNull {

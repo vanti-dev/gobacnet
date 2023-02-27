@@ -47,10 +47,13 @@ func readMulti(cmd *cobra.Command, args []string) {
 		property.PrintAll()
 		return
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 	c, err := gobacnet.NewClient(viper.GetString("interface"), viper.GetInt("port"))
 
 	// We need the actual address of the device first.
-	resp, err := c.WhoIs(startRange, endRange)
+	resp, err := c.WhoIs(ctx, startRange, endRange)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,9 +61,6 @@ func readMulti(cmd *cobra.Command, args []string) {
 	if len(resp) == 0 {
 		log.Fatal("Device id was not found on the network.")
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
 	for _, d := range resp {
 		dest := d
 

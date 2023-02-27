@@ -66,8 +66,10 @@ func readProp(cmd *cobra.Command, args []string) {
 	}
 	defer c.Close()
 
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 	// We need the actual address of the device first.
-	resp, err := c.WhoIs(deviceID, deviceID)
+	resp, err := c.WhoIs(ctx, deviceID, deviceID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -108,8 +110,6 @@ func readProp(cmd *cobra.Command, args []string) {
 			},
 		},
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
 	out, err := c.ReadProperty(ctx, dest, rp)
 	if err != nil {
 		if rp.Object.Properties[0].ID == property.ObjectList {
