@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"sync"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
 	"github.com/vanti-dev/gobacnet"
 	"github.com/vanti-dev/gobacnet/types"
 )
@@ -69,6 +71,8 @@ func discover(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	defer c.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 
 	log.Printf("Discovering on interface %s and port %d", Interface, Port)
 	start := time.Now()
@@ -84,7 +88,7 @@ func discover(cmd *cobra.Command, args []string) {
 			for devs := range scan {
 				for _, d := range devs {
 					log.Infof("Found device: %d", d.ID.Instance)
-					dev, err := c.Objects(d)
+					dev, err := c.Objects(ctx, d)
 
 					if err != nil {
 						log.Error(err)

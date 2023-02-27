@@ -34,7 +34,6 @@ package gobacnet
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/vanti-dev/gobacnet/encoding"
 	bactype "github.com/vanti-dev/gobacnet/types"
@@ -42,16 +41,16 @@ import (
 
 const maxReattempt = 2
 
-// ReadMultipleProperty uses the given device and read property request to read
+// ReadMultiProperty uses the given device and read property request to read
 // from a device. Along with being able to read multiple properties from a
 // device, it can also read these properties from multiple objects. This is a
 // good feature to read all present values of every object in the device. This
 // is a batch operation compared to a ReadProperty and should be used in place
 // when reading more than two objects/properties.
-func (c *Client) ReadMultiProperty(dev bactype.Device, rp bactype.ReadMultipleProperty) (bactype.ReadMultipleProperty, error) {
+func (c *Client) ReadMultiProperty(ctx context.Context, dev bactype.Device, rp bactype.ReadMultipleProperty) (bactype.ReadMultipleProperty, error) {
 	var out bactype.ReadMultipleProperty
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	id, err := c.tsm.ID(ctx)
 	if err != nil {
@@ -75,8 +74,8 @@ func (c *Client) ReadMultiProperty(dev bactype.Device, rp bactype.ReadMultiplePr
 		Priority:              bactype.Normal,
 		HopCount:              bactype.DefaultHopCount,
 	})
-	enc.ReadMultipleProperty(uint8(id), rp)
-	if enc.Error() != nil {
+	err = enc.ReadMultipleProperty(uint8(id), rp)
+	if err != nil {
 		return out, fmt.Errorf("encoding read multiple property failed: %v", err)
 	}
 
@@ -88,7 +87,7 @@ func (c *Client) ReadMultiProperty(dev bactype.Device, rp bactype.ReadMultiplePr
 	err = fmt.Errorf("go")
 
 	for count := 0; err != nil && count < maxReattempt; count++ {
-		out, err = c.sendReadMultipleProperty(id, dev, pack)
+		out, err = c.sendReadMultipleProperty(ctx, id, dev, pack)
 		if err == nil {
 			return out, nil
 		}
@@ -96,14 +95,14 @@ func (c *Client) ReadMultiProperty(dev bactype.Device, rp bactype.ReadMultiplePr
 	return out, fmt.Errorf("failed %d tries: %v", maxReattempt, err)
 }
 
-func (c *Client) sendReadMultipleProperty(id int, dev bactype.Device, request []byte) (bactype.ReadMultipleProperty, error) {
+func (c *Client) sendReadMultipleProperty(ctx context.Context, id int, dev bactype.Device, request []byte) (bactype.ReadMultipleProperty, error) {
 	var out bactype.ReadMultipleProperty
 	_, err := c.send(dev.Addr, request)
 	if err != nil {
 		return out, err
 	}
 
-	raw, err := c.tsm.Receive(id, time.Duration(5)*time.Second)
+	raw, err := c.tsm.Receive(ctx, id)
 	if err != nil {
 		return out, fmt.Errorf("unable to receive id %d: %v", id, err)
 	}
@@ -131,8 +130,8 @@ func (c *Client) sendReadMultipleProperty(id int, dev bactype.Device, request []
 }
 
 // ReadProperties uses ReadMultiProperty if available or falls back to ReadProperty if not.
-func (c *Client) ReadProperties(dev bactype.Device, property bactype.ReadMultipleProperty) (bactype.ReadMultipleProperty, error) {
-	res, err := c.ReadMultiProperty(dev, property)
+func (c *Client) ReadProperties(ctx context.Context, dev bactype.Device, property bactype.ReadMultipleProperty) (bactype.ReadMultipleProperty, error) {
+	res, err := c.ReadMultiProperty(ctx, dev, property)
 	if err == nil {
 		return res, nil
 	}
@@ -141,7 +140,7 @@ func (c *Client) ReadProperties(dev bactype.Device, property bactype.ReadMultipl
 
 	// todo: be more careful retrying only when we think it might succeed - e.g. check for "service not supported"
 	for i, object := range property.Objects {
-		propRes, err := c.ReadProperty(dev, bactype.ReadPropertyData{Object: object})
+		propRes, err := c.ReadProperty(ctx, dev, bactype.ReadPropertyData{Object: object})
 		if err != nil {
 			return bactype.ReadMultipleProperty{}, err
 		}

@@ -104,7 +104,9 @@ func TestDataTransaction(t *testing.T) {
 	}()
 
 	go func() {
-		b, err := tsm.Receive(ids[0], time.Duration(5)*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		b, err := tsm.Receive(ctx, ids[0])
 		if err != nil {
 			t.Error(err)
 		}
@@ -116,7 +118,9 @@ func TestDataTransaction(t *testing.T) {
 		t.Log(s)
 	}()
 
-	b, err := tsm.Receive(ids[1], time.Duration(5)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	b, err := tsm.Receive(ctx, ids[1])
 	if err != nil {
 		t.Error(err)
 	}

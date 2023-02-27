@@ -15,12 +15,15 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
 	"github.com/vanti-dev/gobacnet"
 	"github.com/vanti-dev/gobacnet/property"
 	"github.com/vanti-dev/gobacnet/types"
@@ -129,11 +132,14 @@ func writeProp(cmd *cobra.Command, args []string) {
 		},
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
 	var wp interface{}
 	if isNull {
 		wp = types.Null{}
 	} else {
-		out, err := c.ReadProperty(dest, rp)
+		out, err := c.ReadProperty(ctx, dest, rp)
 
 		if err != nil {
 			if rp.Object.Properties[0].ID == property.ObjectList {
@@ -172,7 +178,7 @@ func writeProp(cmd *cobra.Command, args []string) {
 	}
 	rp.Object.Properties[0].Data = wp
 	log.Printf("Writting: %v", wp)
-	err = c.WriteProperty(dest, rp, priority)
+	err = c.WriteProperty(ctx, dest, rp, priority)
 	if err != nil {
 		log.Println(err)
 	}

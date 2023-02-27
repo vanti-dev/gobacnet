@@ -15,12 +15,15 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
+
 	"github.com/vanti-dev/gobacnet"
 	"github.com/vanti-dev/gobacnet/property"
 	"github.com/vanti-dev/gobacnet/types"
@@ -56,6 +59,8 @@ func readMulti(cmd *cobra.Command, args []string) {
 		log.Fatal("Device id was not found on the network.")
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 	for _, d := range resp {
 		dest := d
 
@@ -73,8 +78,7 @@ func readMulti(cmd *cobra.Command, args []string) {
 				},
 			},
 		}
-
-		out, err := c.ReadProperty(dest, rp)
+		out, err := c.ReadProperty(ctx, dest, rp)
 		if err != nil {
 			log.Fatal(err)
 			return
@@ -107,7 +111,7 @@ func readMulti(cmd *cobra.Command, args []string) {
 			}
 		}
 
-		x, err := c.ReadMultiProperty(dest, rpm)
+		x, err := c.ReadMultiProperty(ctx, dest, rpm)
 		if err != nil {
 			log.Println(err)
 		}

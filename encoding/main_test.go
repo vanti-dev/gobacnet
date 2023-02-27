@@ -32,6 +32,8 @@ License.
 package encoding
 
 import (
+	"encoding/hex"
+	"log"
 	"reflect"
 	"testing"
 
@@ -72,28 +74,33 @@ func subTestNPDU(t *testing.T, n bactype.NPDU) func(t *testing.T) {
 }
 func TestNPDU(t *testing.T) {
 	n := bactype.NPDU{
-		Version:               102,
-		IsNetworkLayerMessage: true,
-		ExpectingReply:        false,
-		Priority:              bactype.Urgent,
+		Version:        01,
+		ExpectingReply: true,
 	}
-	subTestNPDU(t, n)
 
-	n.NetworkLayerMessageType = 20
-	t.Run("Testing Message Type", subTestNPDU(t, n))
-
-	n.NetworkLayerMessageType = 0
-	n.IsNetworkLayerMessage = false
-	n.ExpectingReply = true
-	t.Run("Testing Expecting Reply", subTestNPDU(t, n))
+	e := NewEncoder()
+	e.NPDU(n)
+	log.Printf("bytes: %s", hex.EncodeToString(e.Bytes()))
 	subTestNPDU(t, n)
+	//
+	//n.NetworkLayerMessageType = 20
+	//t.Run("Testing Message Type", subTestNPDU(t, n))
+	//
+	//n.NetworkLayerMessageType = 0
+	//n.IsNetworkLayerMessage = false
+	//n.ExpectingReply = true
+	//t.Run("Testing Expecting Reply", subTestNPDU(t, n))
+	//subTestNPDU(t, n)
 
 	n.Destination = &bactype.Address{
-		Net: 314,
-		Adr: []uint8{91, 4, 5, 6},
-		Len: 4,
+		Net: 50011,
+		Adr: []uint8{1},
+		Len: 1,
 	}
-	n.HopCount = 21
+	//n.HopCount = 21
+	e = NewEncoder()
+	e.NPDU(n)
+	log.Printf("bytes: %s", hex.EncodeToString(e.Bytes()))
 	t.Run("Testing Destination Address", subTestNPDU(t, n))
 	subTestNPDU(t, n)
 

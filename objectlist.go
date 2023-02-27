@@ -1,13 +1,14 @@
 package gobacnet
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/vanti-dev/gobacnet/property"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
-func (c *Client) objectListLen(dev bactype.Device) (int, error) {
+func (c *Client) objectListLen(ctx context.Context, dev bactype.Device) (int, error) {
 	rp := bactype.ReadPropertyData{
 		Object: bactype.Object{
 			ID: dev.ID,
@@ -20,7 +21,7 @@ func (c *Client) objectListLen(dev bactype.Device) (int, error) {
 		},
 	}
 
-	resp, err := c.ReadProperty(dev, rp)
+	resp, err := c.ReadProperty(ctx, dev, rp)
 	if err != nil {
 		return 0, fmt.Errorf("reading property failed: %v", err)
 	}
@@ -36,7 +37,7 @@ func (c *Client) objectListLen(dev bactype.Device) (int, error) {
 	return int(data), nil
 }
 
-func (c *Client) objectsRange(dev bactype.Device, start, end int) ([]bactype.Object, error) {
+func (c *Client) objectsRange(ctx context.Context, dev bactype.Device, start, end int) ([]bactype.Object, error) {
 	rpm := bactype.ReadMultipleProperty{
 		Objects: []bactype.Object{
 			bactype.Object{
@@ -51,7 +52,7 @@ func (c *Client) objectsRange(dev bactype.Device, start, end int) ([]bactype.Obj
 			ArrayIndex: uint32(i),
 		})
 	}
-	resp, err := c.ReadMultiProperty(dev, rpm)
+	resp, err := c.ReadMultiProperty(ctx, dev, rpm)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read multiple properties: %v", err)
 	}
@@ -84,10 +85,10 @@ func objectCopy(dest bactype.ObjectMap, src []bactype.Object) {
 
 }
 
-func (c *Client) objectList(dev *bactype.Device) error {
+func (c *Client) objectList(ctx context.Context, dev *bactype.Device) error {
 	dev.Objects = make(bactype.ObjectMap)
 
-	l, err := c.objectListLen(*dev)
+	l, err := c.objectListLen(ctx, *dev)
 	if err != nil {
 		return fmt.Errorf("unable to get list length: %v", err)
 	}
@@ -99,7 +100,7 @@ func (c *Client) objectList(dev *bactype.Device) error {
 		start := i*scanSize + 1
 		end := (i + 1) * scanSize
 
-		objs, err := c.objectsRange(*dev, start, end)
+		objs, err := c.objectsRange(ctx, *dev, start, end)
 		if err != nil {
 			return fmt.Errorf("unable to retrieve objects between %d and %d: %v", start, end, err)
 		}
@@ -108,7 +109,7 @@ func (c *Client) objectList(dev *bactype.Device) error {
 	start := i*scanSize + 1
 	end := l
 	if start <= end {
-		objs, err := c.objectsRange(*dev, start, end)
+		objs, err := c.objectsRange(ctx, *dev, start, end)
 		if err != nil {
 			return fmt.Errorf("unable to retrieve objects between %d and %d: %v", start, end, err)
 		}
@@ -117,7 +118,7 @@ func (c *Client) objectList(dev *bactype.Device) error {
 	return nil
 }
 
-func (c *Client) objectInformation(dev *bactype.Device, objs []bactype.Object) error {
+func (c *Client) objectInformation(ctx context.Context, dev *bactype.Device, objs []bactype.Object) error {
 	// Often times the map will re arrange the order it spits out
 	// so we need to keep track since the response will be in the
 	// same order we issue the commands.
@@ -148,7 +149,7 @@ func (c *Client) objectInformation(dev *bactype.Device, objs []bactype.Object) e
 		})
 
 	}
-	resp, err := c.ReadMultiProperty(*dev, rpm)
+	resp, err := c.ReadMultiProperty(ctx, *dev, rpm)
 	if err != nil {
 		return fmt.Errorf("unable to read multiple property :%v", err)
 	}
@@ -171,14 +172,14 @@ func (c *Client) objectInformation(dev *bactype.Device, objs []bactype.Object) e
 	return nil
 }
 
-func (c *Client) allObjectInformation(dev *bactype.Device) error {
+func (c *Client) allObjectInformation(ctx context.Context, dev *bactype.Device) error {
 	objs := dev.ObjectSlice()
 	incrSize := 5
 
 	var err error
 	for i := 0; i < len(objs); i += incrSize {
 		subset := objs[i:min(i+incrSize, len(objs))]
-		err = c.objectInformation(dev, subset)
+		err = c.objectInformation(ctx, dev, subset)
 		if err != nil {
 			return err
 		}
@@ -192,12 +193,12 @@ func (c *Client) allObjectInformation(dev *bactype.Device) error {
 // gather additional information from the object such as the name and
 // description of the objects. The device returned contains all of the name and
 // description fields for all objects
-func (c *Client) Objects(dev bactype.Device) (bactype.Device, error) {
-	err := c.objectList(&dev)
+func (c *Client) Objects(ctx context.Context, dev bactype.Device) (bactype.Device, error) {
+	err := c.objectList(ctx, &dev)
 	if err != nil {
 		return dev, fmt.Errorf("unable to get object list: %v", err)
 	}
-	err = c.allObjectInformation(&dev)
+	err = c.allObjectInformation(ctx, &dev)
 	if err != nil {
 		return dev, fmt.Errorf("unable to get object's information: %v", err)
 	}

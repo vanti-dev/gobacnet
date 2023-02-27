@@ -15,12 +15,15 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
+
 	"github.com/vanti-dev/gobacnet"
 	"github.com/vanti-dev/gobacnet/property"
 	"github.com/vanti-dev/gobacnet/types"
@@ -105,7 +108,9 @@ func readProp(cmd *cobra.Command, args []string) {
 			},
 		},
 	}
-	out, err := c.ReadProperty(dest, rp)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	out, err := c.ReadProperty(ctx, dest, rp)
 	if err != nil {
 		if rp.Object.Properties[0].ID == property.ObjectList {
 			log.Error("Note: ObjectList reads may need to be broken up into multiple reads due to length. Read index 0 for array length")

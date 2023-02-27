@@ -35,7 +35,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 )
 
 // MaxTransaction is the default max number of transactions that can occur
@@ -107,9 +106,8 @@ func (t *TSM) Send(id int, b interface{}) error {
 	return nil
 }
 
-// Receive attempts to receive a byte array from the invoked id. If a time out
-// period has passed then an error is returned
-func (t *TSM) Receive(id int, timeout time.Duration) (interface{}, error) {
+// Receive attempts to receive a byte array from the invoked id
+func (t *TSM) Receive(ctx context.Context, id int) (interface{}, error) {
 	t.mutex.Lock()
 	s, ok := t.states[id]
 	t.mutex.Unlock()
@@ -118,7 +116,7 @@ func (t *TSM) Receive(id int, timeout time.Duration) (interface{}, error) {
 		return nil, fmt.Errorf("id %d is not sending", id)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	// Wait for data
@@ -126,9 +124,8 @@ func (t *TSM) Receive(id int, timeout time.Duration) (interface{}, error) {
 	case b := <-s.data:
 		return b, nil
 	case <-ctx.Done():
-		return nil, fmt.Errorf("Receive timed out (%v)", timeout)
+		return nil, ctx.Err()
 	}
-
 }
 
 // ID returns the invoke id that was used to save the state of this connection.

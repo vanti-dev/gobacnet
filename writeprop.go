@@ -3,14 +3,13 @@ package gobacnet
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/vanti-dev/gobacnet/encoding"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
-func (c *Client) WriteProperty(dest bactype.Device, wp bactype.ReadPropertyData, priority uint) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+func (c *Client) WriteProperty(ctx context.Context, dest bactype.Device, wp bactype.ReadPropertyData, priority uint) error {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	id, err := c.tsm.ID(ctx)
 	if err != nil {
@@ -50,7 +49,7 @@ func (c *Client) WriteProperty(dest bactype.Device, wp bactype.ReadPropertyData,
 			continue
 		}
 
-		raw, err = c.tsm.Receive(id, time.Duration(5)*time.Second)
+		raw, err = c.tsm.Receive(ctx, id)
 		if err != nil {
 			continue
 		}

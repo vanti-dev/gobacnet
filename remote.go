@@ -1,6 +1,7 @@
 package gobacnet
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/vanti-dev/gobacnet/property"
@@ -14,7 +15,7 @@ import (
 // The ids should each refer to an object of type types.Device.
 // This will attempt to collect network comm settings like MaxApdu and act equivalently to the data you'd get in
 // an IAm response.
-func (c *Client) RemoteDevices(addr types.Address, ids ...types.ObjectInstance) ([]types.Device, error) {
+func (c *Client) RemoteDevices(ctx context.Context, addr types.Address, ids ...types.ObjectInstance) ([]types.Device, error) {
 	defaultDevice := types.Device{
 		Addr:    addr,
 		MaxApdu: 1000,
@@ -30,7 +31,7 @@ func (c *Client) RemoteDevices(addr types.Address, ids ...types.ObjectInstance) 
 			}},
 		)
 	}
-	res, err := c.ReadProperties(defaultDevice, req)
+	res, err := c.ReadProperties(ctx, defaultDevice, req)
 	if err != nil {
 		return nil, err
 	}

@@ -32,12 +32,15 @@ License.
 package gobacnet
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/vanti-dev/gobacnet/types/objecttype"
 	"log"
 	"net"
 	"testing"
+	"time"
+
+	"github.com/vanti-dev/gobacnet/types/objecttype"
 
 	"github.com/vanti-dev/gobacnet/property"
 
@@ -156,8 +159,9 @@ func testReadPropertyService(c *Client, t *testing.T) {
 	if len(dev) == 0 {
 		t.Fatalf("Unable to find device id %d", testServer)
 	}
-
-	resp, err := c.ReadProperty(dev[0], read)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	resp, err := c.ReadProperty(ctx, dev[0], read)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +202,9 @@ func testWritePropertyService(c *Client, t *testing.T) {
 	if len(dev) == 0 {
 		t.Fatalf("Unable to find device id %d", testServer)
 	}
-	resp, err := c.ReadProperty(dev[0], wp)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	resp, err := c.ReadProperty(ctx, dev[0], wp)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,12 +213,12 @@ func testWritePropertyService(c *Client, t *testing.T) {
 	t.Logf("original name is: %d", org)
 
 	wp.Object.Properties[0].Data = targetName
-	err = c.WriteProperty(dev[0], wp, 0)
+	err = c.WriteProperty(ctx, dev[0], wp, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	resp, err = c.ReadProperty(dev[0], wp)
+	resp, err = c.ReadProperty(ctx, dev[0], wp)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,12 +235,12 @@ func testWritePropertyService(c *Client, t *testing.T) {
 
 	// Revert Changes
 	wp.Object.Properties[0].Data = org
-	err = c.WriteProperty(dev[0], wp, 0)
+	err = c.WriteProperty(ctx, dev[0], wp, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	resp, err = c.ReadProperty(dev[0], wp)
+	resp, err = c.ReadProperty(ctx, dev[0], wp)
 	if err != nil {
 		t.Fatal(err)
 	}

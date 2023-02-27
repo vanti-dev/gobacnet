@@ -35,15 +35,14 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/vanti-dev/gobacnet/encoding"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
 // ReadProperty reads a single property from a single object in the given device.
-func (c *Client) ReadProperty(dest bactype.Device, rp bactype.ReadPropertyData) (bactype.ReadPropertyData, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+func (c *Client) ReadProperty(ctx context.Context, dest bactype.Device, rp bactype.ReadPropertyData) (bactype.ReadPropertyData, error) {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	id, err := c.tsm.ID(ctx)
 	if err != nil {
@@ -84,7 +83,7 @@ func (c *Client) ReadProperty(dest bactype.Device, rp bactype.ReadPropertyData) 
 			continue
 		}
 
-		raw, err := c.tsm.Receive(id, time.Duration(5)*time.Second)
+		raw, err := c.tsm.Receive(ctx, id)
 		if err != nil {
 			continue
 		}
