@@ -52,6 +52,7 @@ func (c *Client) WhoIs(ctx context.Context, low, high int) ([]types.Device, erro
 	})
 	src, _ := c.localAddress()
 
+	dest.Net = 0xFFFF
 	dest.SetBroadcast(true)
 
 	enc := encoding.NewEncoder()
