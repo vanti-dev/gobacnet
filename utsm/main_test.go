@@ -32,13 +32,14 @@ License.
 package utsm
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
 )
 
 func sub(t *testing.T, m *Manager, start, end int) {
-	b, err := m.Subscribe(start, end)
+	b, err := m.Subscribe(context.Background(), start, end)
 	if err != nil {
 		t.Fatal(err)
 	}
