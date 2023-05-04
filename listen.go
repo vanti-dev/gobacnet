@@ -97,6 +97,10 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 				// we set the type.
 				src.IP = src.IP.To4()
 				iam.Addr = bactype.UDPToAddress(src)
+				if src := npdu.Source; src != nil {
+					iam.Addr.Net = src.Net
+					iam.Addr.Adr = src.Adr
+				}
 				c.Log.Debugf("Received IAm Message %+v", iam)
 				if err != nil {
 					c.Log.Error(err)
