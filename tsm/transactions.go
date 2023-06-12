@@ -136,12 +136,12 @@ func (t *TSM) ID(ctx context.Context) (int, error) {
 		// got a free spot, lets try and get a free id
 		select {
 		case id = <-t.free.id:
-		case err := <-ctx.Done():
+		case <-ctx.Done():
 			t.free.space <- struct{}{}
-			return 0, fmt.Errorf("unable to get a free id: %v", err)
+			return 0, fmt.Errorf("unable to get a free id: %w", ctx.Err())
 		}
-	case err := <-ctx.Done():
-		return 0, fmt.Errorf("no free space: %v", err)
+	case <-ctx.Done():
+		return 0, fmt.Errorf("no free space: %w", ctx.Err())
 	}
 
 	// skip error checking, since we control new generation and what is put in the pool.
