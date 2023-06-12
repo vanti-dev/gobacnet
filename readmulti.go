@@ -39,8 +39,6 @@ import (
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
-const maxReattempt = 2
-
 // ReadMultiProperty uses the given device and read property request to read
 // from a device. Along with being able to read multiple properties from a
 // device, it can also read these properties from multiple objects. This is a
@@ -83,16 +81,7 @@ func (c *Client) ReadMultiProperty(ctx context.Context, dev bactype.Device, rp b
 	if dev.MaxApdu < uint32(len(pack)) {
 		return out, fmt.Errorf("read multiple property is too large (max: %d given: %d)", dev.MaxApdu, len(pack))
 	}
-	// the value filled doesn't matter. it just needs to be non nil
-	err = fmt.Errorf("go")
-
-	for count := 0; err != nil && count < maxReattempt; count++ {
-		out, err = c.sendReadMultipleProperty(ctx, id, dev, pack)
-		if err == nil {
-			return out, nil
-		}
-	}
-	return out, fmt.Errorf("failed %d tries: %v", maxReattempt, err)
+	return c.sendReadMultipleProperty(ctx, id, dev, pack)
 }
 
 func (c *Client) sendReadMultipleProperty(ctx context.Context, id int, dev bactype.Device, request []byte) (bactype.ReadMultipleProperty, error) {
@@ -137,6 +126,13 @@ func (c *Client) ReadProperties(ctx context.Context, dev bactype.Device, propert
 	}
 	var out bactype.ReadMultipleProperty
 	out.Objects = make([]bactype.Object, len(property.Objects))
+
+	// the ReadProperty calls below will all fail if ctx is Done so try and surface the correct error
+	select {
+	case <-ctx.Done():
+		return res, err
+	default:
+	}
 
 	// todo: be more careful retrying only when we think it might succeed - e.g. check for "service not supported"
 	for i, object := range property.Objects {
