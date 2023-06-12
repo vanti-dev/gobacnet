@@ -65,7 +65,7 @@ type TSM struct {
 	}
 }
 
-// New creates a new transaction manager
+// New creates a new transaction manager that can handle at most size concurrent transactions.
 func New(size int) *TSM {
 	t := &TSM{
 		states: make(map[int]*state), pool: sync.Pool{

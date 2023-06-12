@@ -37,6 +37,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/vanti-dev/gobacnet/tsm"
 	bactype "github.com/vanti-dev/gobacnet/types"
 	"github.com/vanti-dev/gobacnet/utsm"
@@ -49,7 +50,7 @@ type Client struct {
 	myAddress        string
 	broadcastAddress net.IP
 	port             int
-	tsm              *tsm.TSM
+	tsm              *tsm.TSM // used to transfer incoming messages to the correct handler
 	utsm             *utsm.Manager
 	listener         *net.UDPConn
 	Log              *logrus.Logger
