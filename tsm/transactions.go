@@ -155,7 +155,8 @@ func (t *TSM) ID(ctx context.Context) (int, error) {
 	return id, nil
 }
 
-// Put allows the id to be reused in the transaction manager
+// Put allows the id to be reused in the transaction manager.
+// Put only returns an error if id is not known.
 func (t *TSM) Put(id int) error {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
