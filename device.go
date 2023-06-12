@@ -71,8 +71,21 @@ func getBroadcast(addr string) (net.IP, error) {
 
 // NewClient creates a new client with the given interface and
 // port.
-func NewClient(inter string, port int) (*Client, error) {
+func NewClient(inter string, port int, opts ...Option) (*Client, error) {
+	cfg := DefaultOptions.
+		With(WithInterface(inter), WithPort(uint16(port))).
+		With(opts...)
+	c, err := cfg.NewClient()
+	if err == nil {
+		go c.listen()
+	}
+	return c, err
+}
+
+func (cfg ClientOptions) NewClient() (*Client, error) {
 	c := &Client{}
+
+	inter := cfg.Interface
 	var networkInterface *net.Interface
 	if inter == "" {
 		i, err := net.Interfaces()
@@ -92,11 +105,8 @@ func NewClient(inter string, port int) (*Client, error) {
 	}
 
 	c.netInterface = networkInterface
-	if port == 0 {
-		c.port = DefaultPort
-	} else {
-		c.port = port
-	}
+	c.port = int(cfg.Port)
+
 	uni, err := c.netInterface.Addrs()
 	if err != nil {
 		return c, err
@@ -129,7 +139,7 @@ func NewClient(inter string, port int) (*Client, error) {
 	}
 	c.broadcastAddress = broadcast
 
-	c.tsm = tsm.New(defaultStateSize)
+	c.tsm = tsm.New(int(cfg.MaxConcurrentTransactions))
 	options := []utsm.ManagerOption{
 		utsm.DefaultSubscriberTimeout(time.Second * time.Duration(10)),
 		utsm.DefaultSubscriberLastReceivedTimeout(time.Second * time.Duration(2)),
@@ -144,13 +154,12 @@ func NewClient(inter string, port int) (*Client, error) {
 	c.listener = conn
 	c.Log = logrus.New()
 	c.Log.Formatter = &logrus.TextFormatter{}
-	c.Log.SetLevel(logrus.DebugLevel)
+	c.Log.SetLevel(cfg.LogLevel)
 
 	// Print out relevant information
 	c.Log.Debug(fmt.Sprintf("Broadcast Address: %v", c.broadcastAddress))
 	c.Log.Debug(fmt.Sprintf("Local Address: %s", c.myAddress))
 	c.Log.Debug(fmt.Sprintf("Port: %x", c.port))
-	go c.listen()
 	return c, nil
 }
 
@@ -169,4 +178,69 @@ func (c *Client) LocalUDPAddress() (*net.UDPAddr, error) {
 	ip, _, _ := net.ParseCIDR(c.myAddress)
 	netstr := fmt.Sprintf("%s:%d", ip.String(), c.port)
 	return net.ResolveUDPAddr("udp4", netstr)
+}
+
+var DefaultOptions = ClientOptions{
+	Port:                      DefaultPort,
+	MaxConcurrentTransactions: defaultStateSize,
+	LogLevel:                  logrus.DebugLevel,
+}
+
+type ClientOptions struct {
+	Interface string
+	Port      uint16
+
+	MaxConcurrentTransactions uint8
+
+	LogLevel logrus.Level
+}
+
+func (cfg ClientOptions) Clone() ClientOptions {
+	return cfg
+}
+
+// With returns a new ClientOptions with the given Options applied.
+// c is not modified by this call.
+func (cfg ClientOptions) With(opts ...Option) ClientOptions {
+	dst := cfg.Clone()
+	for _, opt := range opts {
+		opt(&dst)
+	}
+	return dst
+}
+
+// Option allows configuration of a Client during construction.
+type Option func(*ClientOptions)
+
+func WithInterface(inter string) Option {
+	return func(client *ClientOptions) {
+		client.Interface = inter
+	}
+}
+
+// WithPort sets the port on which the client will listen.
+func WithPort(port uint16) Option {
+	if port == 0 {
+		port = DefaultPort
+	}
+	return func(client *ClientOptions) {
+		client.Port = port
+	}
+}
+
+// WithMaxConcurrentTransactions sets the maximum number of concurrent transactions.
+func WithMaxConcurrentTransactions(size uint8) Option {
+	if size == 0 {
+		size = defaultStateSize
+	}
+	return func(client *ClientOptions) {
+		client.MaxConcurrentTransactions = size
+	}
+}
+
+// WithLogLevel sets the log level.
+func WithLogLevel(level logrus.Level) Option {
+	return func(client *ClientOptions) {
+		client.LogLevel = level
+	}
 }
