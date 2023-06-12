@@ -82,7 +82,7 @@ func (e *Encoder) ReadProperty(invokeID uint8, data bactype.ReadPropertyData) er
 // ReadPropertyAck is the response made to a ReadProperty service request.
 func (e *Encoder) ReadPropertyAck(invokeID uint8, data bactype.ReadPropertyData) error {
 	if len(data.Object.Properties) != 1 {
-		return fmt.Errorf("Property length length must be 1 not %d", len(data.Object.Properties))
+		return fmt.Errorf("property length length must be 1 not %d", len(data.Object.Properties))
 	}
 
 	// PDU Type
@@ -111,7 +111,7 @@ func (e *Encoder) ReadPropertyAck(invokeID uint8, data bactype.ReadPropertyData)
 func (d *Decoder) ReadProperty(data *bactype.ReadPropertyData) error {
 	// Must have at least 7 bytes
 	if d.buff.Len() < 7 {
-		return fmt.Errorf("Missing parameters")
+		return fmt.Errorf("missing parameters")
 	}
 
 	// Tag 0: Object ID
@@ -126,7 +126,7 @@ func (d *Decoder) ReadProperty(data *bactype.ReadPropertyData) error {
 	var objectType bactype.ObjectType
 	var instance bactype.ObjectInstance
 	if !meta.isContextSpecific() {
-		return fmt.Errorf("Tag %d should be context specific. %x", tag, meta)
+		return fmt.Errorf("tag %d should be context specific. %x", tag, meta)
 	}
 	objectType, instance = d.objectId()
 	data.Object.ID.Type = objectType

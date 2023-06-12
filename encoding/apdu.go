@@ -103,15 +103,15 @@ func (d *Decoder) APDU(a *bactype.APDU) error {
 	case bactype.ConfirmedServiceRequest:
 		return d.apduConfirmed(a)
 	case bactype.SegmentAck:
-		return fmt.Errorf("Segmented")
+		return fmt.Errorf("segmented")
 	case bactype.Error:
 		return d.apduError(a)
 	case bactype.Reject:
-		return fmt.Errorf("Rejected")
+		return fmt.Errorf("rejected")
 	case bactype.Abort:
-		return fmt.Errorf("Aborted")
+		return fmt.Errorf("aborted")
 	default:
-		return fmt.Errorf("Unknown PDU type:%d", a.DataType)
+		return fmt.Errorf("unknown PDU type:%d", a.DataType)
 	}
 }
 
@@ -125,7 +125,7 @@ func (d *Decoder) apduError(a *bactype.APDU) error {
 
 	c, ok := class.(uint32)
 	if !ok {
-		return fmt.Errorf("Unable to decode error class")
+		return fmt.Errorf("unable to decode error class")
 	}
 	a.Error.Class = c
 
@@ -136,7 +136,7 @@ func (d *Decoder) apduError(a *bactype.APDU) error {
 
 	c, ok = code.(uint32)
 	if !ok {
-		return fmt.Errorf("Unable to decode error code")
+		return fmt.Errorf("unable to decode error code")
 	}
 	a.Error.Code = c
 

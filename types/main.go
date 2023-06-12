@@ -34,9 +34,10 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"net"
+
 	"github.com/vanti-dev/gobacnet/property"
 	"github.com/vanti-dev/gobacnet/types/objecttype"
-	"net"
 )
 
 type Enumerated uint32
@@ -146,7 +147,7 @@ func (a *Address) IsUnicast() bool {
 // UDPAddr parses the mac address and returns an proper net.UDPAddr
 func (a *Address) UDPAddr() (net.UDPAddr, error) {
 	if len(a.Mac) != 6 {
-		return net.UDPAddr{}, fmt.Errorf("Mac is too short at %d", len(a.Mac))
+		return net.UDPAddr{}, fmt.Errorf("mac is too short at %d", len(a.Mac))
 	}
 	port := uint(a.Mac[4])<<8 | uint(a.Mac[5])
 	ip := net.IPv4(byte(a.Mac[0]), byte(a.Mac[1]), byte(a.Mac[2]), byte(a.Mac[3]))
@@ -165,7 +166,7 @@ func UDPToAddress(n *net.UDPAddr) Address {
 	// Length of IP plus the port
 	length := net.IPv4len + 2
 	a.Mac = make([]uint8, length)
-	//Encode ip
+	// Encode ip
 	copy(a.Mac, n.IP.To4())
 
 	// Encode port

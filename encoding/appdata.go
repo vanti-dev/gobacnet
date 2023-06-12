@@ -229,7 +229,7 @@ func (e *Encoder) AppData(i interface{}) error {
 		e.tag(tagInfo{ID: tagNull, Context: appLayerContext})
 
 	default:
-		err := fmt.Errorf("Unknown type %T", i)
+		err := fmt.Errorf("unknown type %T", i)
 		// Set global error
 		e.err = err
 		return err
@@ -289,6 +289,6 @@ func (d *Decoder) AppData() (interface{}, error) {
 			Instance: objInstance,
 		}, d.Error()
 	default:
-		return nil, fmt.Errorf("Unsupported tag: %d", tag)
+		return nil, fmt.Errorf("unsupported tag: %d", tag)
 	}
 }

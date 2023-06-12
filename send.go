@@ -60,7 +60,7 @@ func (c *Client) address(addr bactype.Address) (net.UDPAddr, error) {
 	} else if addr.IsUnicast() {
 		return addr.UDPAddr()
 	}
-	return net.UDPAddr{}, fmt.Errorf("Unable to parse bacnet address")
+	return net.UDPAddr{}, fmt.Errorf("unable to parse bacnet address")
 }
 
 // Sets the udp version used to transfer data

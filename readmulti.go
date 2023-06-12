@@ -52,7 +52,7 @@ func (c *Client) ReadMultiProperty(ctx context.Context, dev bactype.Device, rp b
 	defer cancel()
 	id, err := c.tsm.ID(ctx)
 	if err != nil {
-		return out, fmt.Errorf("unable to get transaction id: %v", err)
+		return out, fmt.Errorf("unable to get transaction id: %w", err)
 	}
 	defer c.tsm.Put(id)
 
@@ -74,7 +74,7 @@ func (c *Client) ReadMultiProperty(ctx context.Context, dev bactype.Device, rp b
 	})
 	err = enc.ReadMultipleProperty(uint8(id), rp)
 	if err != nil {
-		return out, fmt.Errorf("encoding read multiple property failed: %v", err)
+		return out, fmt.Errorf("encoding read multiple property failed: %w", err)
 	}
 
 	pack := enc.Bytes()
@@ -93,7 +93,7 @@ func (c *Client) sendReadMultipleProperty(ctx context.Context, id int, dev bacty
 
 	raw, err := c.tsm.Receive(ctx, id)
 	if err != nil {
-		return out, fmt.Errorf("unable to receive id %d: %v", id, err)
+		return out, fmt.Errorf("unable to receive id %d: %w", id, err)
 	}
 
 	var b []byte

@@ -13,7 +13,7 @@ func (c *Client) WriteProperty(ctx context.Context, dest bactype.Device, wp bact
 	defer cancel()
 	id, err := c.tsm.ID(ctx)
 	if err != nil {
-		return fmt.Errorf("unable to get an transaction id: %v", err)
+		return fmt.Errorf("unable to get an transaction id: %w", err)
 	}
 	defer c.tsm.Put(id)
 

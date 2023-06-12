@@ -23,7 +23,7 @@ func (c *Client) objectListLen(ctx context.Context, dev bactype.Device) (int, er
 
 	resp, err := c.ReadProperty(ctx, dev, rp)
 	if err != nil {
-		return 0, fmt.Errorf("reading property failed: %v", err)
+		return 0, fmt.Errorf("reading property failed: %w", err)
 	}
 
 	if len(resp.Object.Properties) == 0 {
@@ -32,7 +32,7 @@ func (c *Client) objectListLen(ctx context.Context, dev bactype.Device) (int, er
 
 	data, ok := resp.Object.Properties[0].Data.(uint32)
 	if !ok {
-		return 0, fmt.Errorf("Unable to get object length")
+		return 0, fmt.Errorf("unable to get object length")
 	}
 	return int(data), nil
 }
@@ -54,7 +54,7 @@ func (c *Client) objectsRange(ctx context.Context, dev bactype.Device, start, en
 	}
 	resp, err := c.ReadMultiProperty(ctx, dev, rpm)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read multiple properties: %v", err)
+		return nil, fmt.Errorf("unable to read multiple properties: %w", err)
 	}
 	if len(resp.Objects) == 0 {
 		return nil, fmt.Errorf("no data was returned")
@@ -90,7 +90,7 @@ func (c *Client) objectList(ctx context.Context, dev *bactype.Device) error {
 
 	l, err := c.objectListLen(ctx, *dev)
 	if err != nil {
-		return fmt.Errorf("unable to get list length: %v", err)
+		return fmt.Errorf("unable to get list length: %w", err)
 	}
 
 	// Scan size is broken
@@ -102,7 +102,7 @@ func (c *Client) objectList(ctx context.Context, dev *bactype.Device) error {
 
 		objs, err := c.objectsRange(ctx, *dev, start, end)
 		if err != nil {
-			return fmt.Errorf("unable to retrieve objects between %d and %d: %v", start, end, err)
+			return fmt.Errorf("unable to retrieve objects between %d and %d: %w", start, end, err)
 		}
 		objectCopy(dev.Objects, objs)
 	}
@@ -111,7 +111,7 @@ func (c *Client) objectList(ctx context.Context, dev *bactype.Device) error {
 	if start <= end {
 		objs, err := c.objectsRange(ctx, *dev, start, end)
 		if err != nil {
-			return fmt.Errorf("unable to retrieve objects between %d and %d: %v", start, end, err)
+			return fmt.Errorf("unable to retrieve objects between %d and %d: %w", start, end, err)
 		}
 		objectCopy(dev.Objects, objs)
 	}
@@ -151,7 +151,7 @@ func (c *Client) objectInformation(ctx context.Context, dev *bactype.Device, obj
 	}
 	resp, err := c.ReadMultiProperty(ctx, *dev, rpm)
 	if err != nil {
-		return fmt.Errorf("unable to read multiple property :%v", err)
+		return fmt.Errorf("unable to read multiple property: %w", err)
 	}
 	var name, description string
 	var ok bool
@@ -196,11 +196,11 @@ func (c *Client) allObjectInformation(ctx context.Context, dev *bactype.Device) 
 func (c *Client) Objects(ctx context.Context, dev bactype.Device) (bactype.Device, error) {
 	err := c.objectList(ctx, &dev)
 	if err != nil {
-		return dev, fmt.Errorf("unable to get object list: %v", err)
+		return dev, fmt.Errorf("unable to get object list: %w", err)
 	}
 	err = c.allObjectInformation(ctx, &dev)
 	if err != nil {
-		return dev, fmt.Errorf("unable to get object's information: %v", err)
+		return dev, fmt.Errorf("unable to get object's information: %w", err)
 	}
 	return dev, nil
 }

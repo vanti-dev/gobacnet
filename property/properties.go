@@ -521,7 +521,7 @@ func Get(s string) (ID, error) {
 	if v, ok := enumMapping[s]; ok {
 		return v, nil
 	}
-	err := fmt.Errorf("%s is not a valid property.", s)
+	err := fmt.Errorf("%q is not a valid property", s)
 	return 0, err
 }
 

@@ -35,6 +35,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+
 	"github.com/vanti-dev/gobacnet/property"
 
 	bactype "github.com/vanti-dev/gobacnet/types"
@@ -75,7 +76,7 @@ func (d *Decoder) decode(data interface{}) {
 }
 func (d *Decoder) tagCheck(inTag uint8) {
 	if d.tagCounter != int(inTag) {
-		d.err = fmt.Errorf("Mismatch in tag id. Tag ID should be %d but is %d", d.tagCounter, inTag)
+		d.err = fmt.Errorf("mismatch in tag id. Tag ID should be %d but is %d", d.tagCounter, inTag)
 	}
 }
 

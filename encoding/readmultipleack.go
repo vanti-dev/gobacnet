@@ -2,6 +2,7 @@ package encoding
 
 import (
 	"fmt"
+
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
@@ -79,7 +80,7 @@ func (d *Decoder) bacError(errorClass, errorCode *uint32) error {
 	case uint32:
 		*errorClass = val
 	default:
-		return fmt.Errorf("Receive bacnet error of unknown type")
+		return fmt.Errorf("receive bacnet error of unknown type")
 	}
 
 	data, err = d.AppData()
@@ -90,7 +91,7 @@ func (d *Decoder) bacError(errorClass, errorCode *uint32) error {
 	case uint32:
 		*errorCode = val
 	default:
-		return fmt.Errorf("Receive bacnet error of unknown type")
+		return fmt.Errorf("receive bacnet error of unknown type")
 	}
 	return nil
 }
@@ -161,7 +162,7 @@ func (d *Decoder) objectsWithData(objects *[]bactype.Object) error {
 					if err != nil {
 						return err
 					}
-					return fmt.Errorf("Class %d Code %d", class, code)
+					return fmt.Errorf("class %d code %d", class, code)
 				}
 				return &ErrorIncorrectTag{Expected: expectedTag, Given: tag}
 			}
