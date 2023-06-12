@@ -116,9 +116,6 @@ func (t *TSM) Receive(ctx context.Context, id int) (interface{}, error) {
 		return nil, fmt.Errorf("id %d is not sending", id)
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	// Wait for data
 	select {
 	case b := <-s.data:
