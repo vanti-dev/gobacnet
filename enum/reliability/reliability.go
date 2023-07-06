@@ -35,18 +35,18 @@ const (
 )
 
 const (
-	ASHAREMaxDefined  = 25
-	ASHAREMaxReserved = 63
+	ashareMaxDefined  = 25
+	ashareMaxReserved = 63
 )
 
 func (e Reliability) IsSpecified() bool {
-	return e <= ASHAREMaxDefined
+	return e <= ashareMaxDefined && e != 11
 }
 
 func (e Reliability) IsReserved() bool {
-	return e <= ASHAREMaxReserved
+	return e <= ashareMaxReserved
 }
 
 func (e Reliability) IsExtension() bool {
-	return e > ASHAREMaxReserved
+	return !e.IsReserved()
 }

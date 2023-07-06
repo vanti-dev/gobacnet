@@ -15,18 +15,18 @@ const (
 )
 
 const (
-	ASHAREMaxDefined  = 5
-	ASHAREMaxReserved = 63
+	ashareMaxDefined  = 5
+	ashareMaxReserved = 63
 )
 
 func (e EventState) IsSpecified() bool {
-	return e <= ASHAREMaxDefined
+	return e <= ashareMaxDefined
 }
 
 func (e EventState) IsReserved() bool {
-	return e <= ASHAREMaxReserved
+	return e <= ashareMaxReserved
 }
 
 func (e EventState) IsExtension() bool {
-	return e > ASHAREMaxReserved
+	return !e.IsReserved()
 }
