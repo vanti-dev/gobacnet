@@ -76,6 +76,36 @@ func TestTSM(t *testing.T) {
 
 }
 
+func TestConcurrency(t *testing.T) {
+	size := 10
+	tsm := New(size)
+	newID := make(chan int, size)
+
+	// puts ids, simulating send timeouts
+	putErrs := make(chan error, 1)
+	go func() {
+		defer close(newID)
+		for i := 0; i < 100; i++ {
+			for i := 0; i < size; i++ {
+				id, err := tsm.ID(context.Background())
+				if err != nil {
+					putErrs <- err
+					return
+				}
+				newID <- id
+				if err := tsm.Put(id); err != nil {
+					putErrs <- err
+					return
+				}
+			}
+		}
+	}()
+
+	for id := range newID {
+		_ = tsm.Send(id, "Hello")
+	}
+}
+
 func TestDataTransaction(t *testing.T) {
 	size := 2
 	tsm := New(size)

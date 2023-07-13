@@ -42,15 +42,10 @@ import (
 const MaxTransaction = 255
 const invalidID = 0
 
-const (
-	idle = iota
-)
-
 type state struct {
-	id           int
-	state        int
-	requestTimer int
-	data         chan interface{}
+	data      chan interface{}
+	reclaimed chan struct{} // closed when Put is called for the state id
+	sends     int32         // must hold TSM.mutex when accessing this variable
 }
 
 // TSM is the transaction state manager. It handles passing data to other
@@ -97,12 +92,37 @@ func New(size int) *TSM {
 func (t *TSM) Send(id int, b interface{}) error {
 	t.mutex.Lock()
 	s, ok := t.states[id]
+	if ok {
+		s.sends++
+	}
 	t.mutex.Unlock()
 
 	if !ok {
 		return fmt.Errorf("id %d is not receiving", id)
 	}
-	s.data <- b
+	select {
+	case s.data <- b:
+		// There's a chance that between sending and entering the below lock someone Put the id.
+		// In that case when Put sees s.sends it will be >0 so it won't close it, so we have to check.
+		t.mutex.Lock()
+		s.sends--
+		if s.sends == 0 {
+			select {
+			case <-s.reclaimed:
+				close(s.data)
+			default:
+			}
+		}
+		t.mutex.Unlock()
+	case <-s.reclaimed:
+		t.mutex.Lock()
+		s.sends--
+		if s.sends == 0 {
+			close(s.data)
+		}
+		t.mutex.Unlock()
+		return fmt.Errorf("id %d is not receiving", id)
+	}
 	return nil
 }
 
@@ -118,7 +138,10 @@ func (t *TSM) Receive(ctx context.Context, id int) (interface{}, error) {
 
 	// Wait for data
 	select {
-	case b := <-s.data:
+	case b, ok := <-s.data:
+		if !ok {
+			return nil, fmt.Errorf("id %d is not sending", id)
+		}
 		return b, nil
 	case <-ctx.Done():
 		return nil, ctx.Err()
@@ -143,9 +166,9 @@ func (t *TSM) ID(ctx context.Context) (int, error) {
 
 	// skip error checking, since we control new generation and what is put in the pool.
 	s := t.pool.Get().(*state)
-	s.state = idle
-	s.requestTimer = 0 // TODO: apdu_timeout
 	s.data = make(chan interface{})
+	s.reclaimed = make(chan struct{})
+	s.sends = 0 // just to be safe
 	t.mutex.Lock()
 	t.states[id] = s
 	t.mutex.Unlock()
@@ -163,7 +186,10 @@ func (t *TSM) Put(id int) error {
 		return fmt.Errorf("id %d does not exist in the transactions", id)
 	}
 
-	close(s.data)
+	close(s.reclaimed)
+	if s.sends == 0 {
+		close(s.data)
+	} // else the send will close it for us
 	t.pool.Put(s)
 	t.free.id <- id
 	t.free.space <- struct{}{}
