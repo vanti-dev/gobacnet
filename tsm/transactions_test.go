@@ -38,7 +38,7 @@ import (
 )
 
 func TestTSM(t *testing.T) {
-	size := 3
+	const size = 3
 	tsm := New(size)
 	ctx := context.Background()
 	var err error
@@ -76,40 +76,129 @@ func TestTSM(t *testing.T) {
 
 }
 
-func TestConcurrency(t *testing.T) {
-	size := 10
-	tsm := New(size)
-	newID := make(chan int, size)
+func TestTSM_ID(t *testing.T) {
+	t.Run("reuses ids that are put", func(t *testing.T) {
+		tsm := New(1)
+		for i := 0; i < 500; i++ {
+			id, err := tsm.ID(context.Background())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if id == 0 {
+				t.Fatal("ID was 0")
+			}
 
-	// puts ids, simulating send timeouts
-	putErrs := make(chan error, 1)
-	go func() {
-		defer close(newID)
-		for i := 0; i < 100; i++ {
-			for i := 0; i < size; i++ {
-				id, err := tsm.ID(context.Background())
-				if err != nil {
-					putErrs <- err
-					return
-				}
-				newID <- id
-				if err := tsm.Put(id); err != nil {
-					putErrs <- err
-					return
-				}
+			err = tsm.Put(id)
+			if err != nil {
+				t.Fatal(err)
 			}
 		}
+	})
+
+	t.Run("doesn't return the same id twice", func(t *testing.T) {
+		size := uint8(MaxTransaction)
+		tsm := New(size)
+		ids := make([]uint8, 0, size)
+		for i := uint8(0); i < size; i++ {
+			ctx, cleanup := context.WithTimeout(context.Background(), time.Millisecond)
+			id, err := tsm.ID(ctx)
+			cleanup()
+			if err != nil {
+				t.Fatal(err)
+			}
+			ids = append(ids, id)
+		}
+		var seen [256]bool
+		for _, id := range ids {
+			if seen[id] {
+				t.Fatalf("id %d was returned twice", id)
+			}
+			seen[id] = true
+		}
+	})
+
+	t.Run("don't use ids that are held", func(t *testing.T) {
+		tsm := New(10)
+		id, err := tsm.ID(context.Background())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i := 0; i < MaxTransaction*2; i++ {
+			id2, err := tsm.ID(context.Background())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if id2 == id {
+				t.Fatalf("id %d was returned twice", id)
+			}
+			err = tsm.Put(id2)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+	})
+
+}
+
+func TestConcurrency(t *testing.T) {
+	const size = 10
+	tsm := New(size)
+	putID := make(chan uint8, size)
+	sendID := make(chan uint8, size)
+	recvID := make(chan uint8, size)
+	done := make(chan struct{})
+
+	// puts ids, simulating send timeouts
+	errs := make(chan error, 1)
+	go func() {
+		defer close(putID)
+		defer close(sendID)
+		defer close(recvID)
+		for i := 0; i < 10000; i++ {
+			id, err := tsm.ID(context.Background())
+			if err != nil {
+				errs <- err
+				return
+			}
+			sendID <- id
+			recvID <- id
+			putID <- id
+		}
+	}()
+	go func() {
+		for id := range putID {
+			if err := tsm.Put(id); err != nil {
+				errs <- err
+				return
+			}
+		}
+		close(done)
 	}()
 
-	for id := range newID {
-		_ = tsm.Send(id, "Hello")
+	for {
+		select {
+		case id, ok := <-sendID:
+			if !ok {
+				return
+			}
+			go tsm.Send(id, "Hello")
+		case id, ok := <-recvID:
+			if !ok {
+				return
+			}
+			go tsm.Receive(context.Background(), id)
+		case <-done:
+		case err := <-errs:
+			t.Fatal(err)
+		}
 	}
 }
 
 func TestDataTransaction(t *testing.T) {
-	size := 2
+	const size = 2
 	tsm := New(size)
-	ids := make([]int, size)
+	ids := make([]uint8, size)
 	var err error
 
 	for i := 0; i < size; i++ {
@@ -120,20 +209,22 @@ func TestDataTransaction(t *testing.T) {
 	}
 
 	go func() {
-		err = tsm.Send(ids[0], "Hello First ID")
+		err := tsm.Send(ids[0], "Hello First ID")
 		if err != nil {
 			t.Error(err)
 		}
 	}()
 
 	go func() {
-		err = tsm.Send(ids[1], "Hello Second ID")
+		err := tsm.Send(ids[1], "Hello Second ID")
 		if err != nil {
 			t.Error(err)
 		}
 	}()
 
+	done0 := make(chan struct{})
 	go func() {
+		defer close(done0)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancel()
 		b, err := tsm.Receive(ctx, ids[0])
@@ -161,4 +252,5 @@ func TestDataTransaction(t *testing.T) {
 		return
 	}
 	t.Log(s)
+	<-done0
 }

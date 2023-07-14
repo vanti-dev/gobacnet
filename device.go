@@ -139,7 +139,7 @@ func (cfg ClientOptions) NewClient() (*Client, error) {
 	}
 	c.broadcastAddress = broadcast
 
-	c.tsm = tsm.New(int(cfg.MaxConcurrentTransactions))
+	c.tsm = tsm.New(cfg.MaxConcurrentTransactions)
 	options := []utsm.ManagerOption{
 		utsm.DefaultSubscriberTimeout(time.Second * time.Duration(10)),
 		utsm.DefaultSubscriberLastReceivedTimeout(time.Second * time.Duration(2)),

@@ -118,25 +118,25 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 			}
 		case bactype.SimpleAck:
 			c.Log.Debug("Received Simple Ack")
-			err := c.tsm.Send(int(apdu.InvokeId), send)
+			err := c.tsm.Send(apdu.InvokeId, send)
 			if err != nil {
 				return
 			}
 		case bactype.ComplexAck:
 			c.Log.Debug("Received Complex Ack")
-			err := c.tsm.Send(int(apdu.InvokeId), send)
+			err := c.tsm.Send(apdu.InvokeId, send)
 			if err != nil {
 				return
 			}
 		case bactype.ConfirmedServiceRequest:
 			c.Log.Debug("Received  Confirmed Service Request")
-			err := c.tsm.Send(int(apdu.InvokeId), send)
+			err := c.tsm.Send(apdu.InvokeId, send)
 			if err != nil {
 				return
 			}
 		case bactype.Error:
 			err := fmt.Errorf("Error Class %d Code %d", apdu.Error.Class, apdu.Error.Code)
-			err = c.tsm.Send(int(apdu.InvokeId), err)
+			err = c.tsm.Send(apdu.InvokeId, err)
 			if err != nil {
 				c.Log.Debugf("unable to send error to %d: %v", apdu.InvokeId, err)
 			}

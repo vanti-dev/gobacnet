@@ -38,7 +38,7 @@ import (
 )
 
 // MaxTransaction is the default max number of transactions that can occur
-// concurrently
+// concurrently. That's one for every uint8 number except 0.
 const MaxTransaction = 255
 const invalidID = 0
 
@@ -52,18 +52,22 @@ type state struct {
 // processes and keeping track of what transactions are currently processed
 type TSM struct {
 	mutex  sync.Mutex
-	states map[int]*state
+	states map[uint8]*state
 	pool   sync.Pool
 	free   struct {
-		id    chan int
-		space chan struct{}
+		id    chan uint8    // queue of free ids, in whatever order they were last released
+		space chan struct{} // free concurrent transaction slots, allows concurrent transactions to be less than MaxTransaction
 	}
 }
 
 // New creates a new transaction manager that can handle at most size concurrent transactions.
-func New(size int) *TSM {
+func New(size uint8) *TSM {
+	if size > MaxTransaction {
+		panic(fmt.Sprintf("size %d is greater than MaxTransaction %d", size, MaxTransaction))
+	}
 	t := &TSM{
-		states: make(map[int]*state), pool: sync.Pool{
+		states: make(map[uint8]*state),
+		pool: sync.Pool{
 			// Operation doesn't include a new channel. We want that done when a get is
 			// done since we close all channels when putting into the pool.
 			New: func() interface{} {
@@ -74,14 +78,14 @@ func New(size int) *TSM {
 	}
 
 	// Generate free ids.
-	t.free.id = make(chan int, MaxTransaction)
-	for i := invalidID + 1; i < MaxTransaction; i++ {
-		t.free.id <- i
+	t.free.id = make(chan uint8, MaxTransaction)
+	for i := invalidID + 1; i <= MaxTransaction; i++ {
+		t.free.id <- uint8(i)
 	}
 
 	// Generate free space
 	t.free.space = make(chan struct{}, size)
-	for i := 0; i < size; i++ {
+	for i := uint8(0); i < size; i++ {
 		t.free.space <- struct{}{}
 	}
 
@@ -89,19 +93,19 @@ func New(size int) *TSM {
 }
 
 // Send data to invoked id
-func (t *TSM) Send(id int, b interface{}) error {
+func (t *TSM) Send(id uint8, b interface{}) error {
 	t.mutex.Lock()
 	s, ok := t.states[id]
-	if ok {
-		s.sends++
-	}
-	t.mutex.Unlock()
-
 	if !ok {
+		t.mutex.Unlock()
 		return fmt.Errorf("id %d is not receiving", id)
 	}
+	s.sends++
+	data := s.data
+	t.mutex.Unlock()
+
 	select {
-	case s.data <- b:
+	case data <- b:
 		// There's a chance that between sending and entering the below lock someone Put the id.
 		// In that case when Put sees s.sends it will be >0 so it won't close it, so we have to check.
 		t.mutex.Lock()
@@ -109,7 +113,7 @@ func (t *TSM) Send(id int, b interface{}) error {
 		if s.sends == 0 {
 			select {
 			case <-s.reclaimed:
-				close(s.data)
+				t.reclaim(id, s)
 			default:
 			}
 		}
@@ -117,9 +121,7 @@ func (t *TSM) Send(id int, b interface{}) error {
 	case <-s.reclaimed:
 		t.mutex.Lock()
 		s.sends--
-		if s.sends == 0 {
-			close(s.data)
-		}
+		t.reclaim(id, s)
 		t.mutex.Unlock()
 		return fmt.Errorf("id %d is not receiving", id)
 	}
@@ -127,18 +129,19 @@ func (t *TSM) Send(id int, b interface{}) error {
 }
 
 // Receive attempts to receive a byte array from the invoked id
-func (t *TSM) Receive(ctx context.Context, id int) (interface{}, error) {
+func (t *TSM) Receive(ctx context.Context, id uint8) (interface{}, error) {
 	t.mutex.Lock()
 	s, ok := t.states[id]
-	t.mutex.Unlock()
-
 	if !ok {
+		t.mutex.Unlock()
 		return nil, fmt.Errorf("id %d is not sending", id)
 	}
+	data := s.data
+	t.mutex.Unlock()
 
 	// Wait for data
 	select {
-	case b, ok := <-s.data:
+	case b, ok := <-data:
 		if !ok {
 			return nil, fmt.Errorf("id %d is not sending", id)
 		}
@@ -149,8 +152,8 @@ func (t *TSM) Receive(ctx context.Context, id int) (interface{}, error) {
 }
 
 // ID returns the invoke id that was used to save the state of this connection.
-func (t *TSM) ID(ctx context.Context) (int, error) {
-	var id int
+func (t *TSM) ID(ctx context.Context) (uint8, error) {
+	var id uint8
 	select {
 	case <-t.free.space:
 		// got a free spot, lets try and get a free id
@@ -166,10 +169,12 @@ func (t *TSM) ID(ctx context.Context) (int, error) {
 
 	// skip error checking, since we control new generation and what is put in the pool.
 	s := t.pool.Get().(*state)
+	t.mutex.Lock()
 	s.data = make(chan interface{})
 	s.reclaimed = make(chan struct{})
-	s.sends = 0 // just to be safe
-	t.mutex.Lock()
+	if s.sends > 0 {
+		panic("s.sends should be 0")
+	}
 	t.states[id] = s
 	t.mutex.Unlock()
 	return id, nil
@@ -177,22 +182,25 @@ func (t *TSM) ID(ctx context.Context) (int, error) {
 
 // Put allows the id to be reused in the transaction manager.
 // Put only returns an error if id is not known.
-func (t *TSM) Put(id int) error {
+func (t *TSM) Put(id uint8) error {
 	t.mutex.Lock()
-	defer t.mutex.Unlock()
-
 	s, ok := t.states[id]
 	if !ok {
+		t.mutex.Unlock()
 		return fmt.Errorf("id %d does not exist in the transactions", id)
 	}
+	delete(t.states, id)
+	close(s.reclaimed) // notify
+	t.reclaim(id, s)
+	t.mutex.Unlock()
+	return nil
+}
 
-	close(s.reclaimed)
+func (t *TSM) reclaim(id uint8, s *state) {
 	if s.sends == 0 {
 		close(s.data)
-	} // else the send will close it for us
-	t.pool.Put(s)
-	t.free.id <- id
-	t.free.space <- struct{}{}
-	delete(t.states, id)
-	return nil
+		t.pool.Put(s)
+		t.free.id <- id
+		t.free.space <- struct{}{}
+	}
 }

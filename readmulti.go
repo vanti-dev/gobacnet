@@ -72,7 +72,7 @@ func (c *Client) ReadMultiProperty(ctx context.Context, dev bactype.Device, rp b
 		Priority:              bactype.Normal,
 		HopCount:              bactype.DefaultHopCount,
 	})
-	err = enc.ReadMultipleProperty(uint8(id), rp)
+	err = enc.ReadMultipleProperty(id, rp)
 	if err != nil {
 		return out, fmt.Errorf("encoding read multiple property failed: %w", err)
 	}
@@ -84,7 +84,7 @@ func (c *Client) ReadMultiProperty(ctx context.Context, dev bactype.Device, rp b
 	return c.sendReadMultipleProperty(ctx, id, dev, pack)
 }
 
-func (c *Client) sendReadMultipleProperty(ctx context.Context, id int, dev bactype.Device, request []byte) (bactype.ReadMultipleProperty, error) {
+func (c *Client) sendReadMultipleProperty(ctx context.Context, id uint8, dev bactype.Device, request []byte) (bactype.ReadMultipleProperty, error) {
 	var out bactype.ReadMultipleProperty
 	_, err := c.send(dev.Addr, request)
 	if err != nil {
