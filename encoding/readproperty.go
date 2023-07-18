@@ -34,6 +34,7 @@ package encoding
 import (
 	"fmt"
 
+	"github.com/vanti-dev/gobacnet/enum/pdutype"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
@@ -67,7 +68,7 @@ func (e *Encoder) readPropertyHeader(tagPos uint8, data bactype.ReadPropertyData
 func (e *Encoder) ReadProperty(invokeID uint8, data bactype.ReadPropertyData) error {
 	// PDU Type
 	a := bactype.APDU{
-		DataType:         bactype.ConfirmedServiceRequest,
+		DataType:         pdutype.ConfirmedServiceRequest,
 		Service:          bactype.ServiceConfirmedReadProperty,
 		MaxSegs:          0,
 		MaxApdu:          MaxAPDU,
@@ -87,7 +88,7 @@ func (e *Encoder) ReadPropertyAck(invokeID uint8, data bactype.ReadPropertyData)
 
 	// PDU Type
 	a := bactype.APDU{
-		DataType: bactype.ComplexAck,
+		DataType: pdutype.ComplexAck,
 		Service:  bactype.ServiceConfirmedReadProperty,
 		MaxSegs:  0,
 		MaxApdu:  MaxAPDU,

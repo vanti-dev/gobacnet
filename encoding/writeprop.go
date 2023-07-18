@@ -1,11 +1,14 @@
 package encoding
 
-import bactype "github.com/vanti-dev/gobacnet/types"
+import (
+	"github.com/vanti-dev/gobacnet/enum/pdutype"
+	bactype "github.com/vanti-dev/gobacnet/types"
+)
 
 // WriteProperty encodes a write property request
 func (e *Encoder) WriteProperty(invokeID uint8, data bactype.ReadPropertyData, priority uint) error {
 	a := bactype.APDU{
-		DataType: bactype.ConfirmedServiceRequest,
+		DataType: pdutype.ConfirmedServiceRequest,
 		Service:  bactype.ServiceConfirmedWriteProperty,
 		MaxSegs:  0,
 		MaxApdu:  MaxAPDU,

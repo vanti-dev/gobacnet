@@ -1,12 +1,13 @@
 package encoding
 
 import (
+	"github.com/vanti-dev/gobacnet/enum/pdutype"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
 func (e *Encoder) ReadMultipleProperty(invokeID uint8, data bactype.ReadMultipleProperty) error {
 	a := bactype.APDU{
-		DataType:         bactype.ConfirmedServiceRequest,
+		DataType:         pdutype.ConfirmedServiceRequest,
 		Service:          bactype.ServiceConfirmedReadPropMultiple,
 		MaxSegs:          0,
 		MaxApdu:          MaxAPDU,

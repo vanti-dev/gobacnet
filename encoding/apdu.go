@@ -34,6 +34,9 @@ package encoding
 import (
 	"fmt"
 
+	"github.com/vanti-dev/gobacnet/enum/errorclass"
+	"github.com/vanti-dev/gobacnet/enum/errorcode"
+	"github.com/vanti-dev/gobacnet/enum/pdutype"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
@@ -46,19 +49,19 @@ func (e *Encoder) APDU(a bactype.APDU) error {
 	e.write(meta)
 
 	switch a.DataType {
-	case bactype.ComplexAck:
+	case pdutype.ComplexAck:
 		e.apduComplexAck(a)
-	case bactype.UnconfirmedServiceRequest:
+	case pdutype.UnconfirmedServiceRequest:
 		e.apduUnconfirmed(a)
-	case bactype.ConfirmedServiceRequest:
+	case pdutype.ConfirmedServiceRequest:
 		e.apduConfirmed(a)
-	case bactype.SegmentAck:
+	case pdutype.SegmentAck:
 		return fmt.Errorf("decoded segmented")
-	case bactype.Error:
+	case pdutype.Error:
 		return fmt.Errorf("decoded error")
-	case bactype.Reject:
+	case pdutype.Reject:
 		return fmt.Errorf("decoded rejected")
-	case bactype.Abort:
+	case pdutype.Abort:
 		return fmt.Errorf("decoded aborted")
 	default:
 		return fmt.Errorf("unknown PDU type:%d", meta.DataType())
@@ -94,21 +97,21 @@ func (d *Decoder) APDU(a *bactype.APDU) error {
 	a.DataType = meta.DataType()
 
 	switch a.DataType {
-	case bactype.ComplexAck:
+	case pdutype.ComplexAck:
 		return d.apduComplexAck(a)
-	case bactype.SimpleAck:
+	case pdutype.SimpleAck:
 		return d.apduSimpleAck(a)
-	case bactype.UnconfirmedServiceRequest:
+	case pdutype.UnconfirmedServiceRequest:
 		return d.apduUnconfirmed(a)
-	case bactype.ConfirmedServiceRequest:
+	case pdutype.ConfirmedServiceRequest:
 		return d.apduConfirmed(a)
-	case bactype.SegmentAck:
+	case pdutype.SegmentAck:
 		return fmt.Errorf("segmented")
-	case bactype.Error:
+	case pdutype.Error:
 		return d.apduError(a)
-	case bactype.Reject:
+	case pdutype.Reject:
 		return fmt.Errorf("rejected")
-	case bactype.Abort:
+	case pdutype.Abort:
 		return fmt.Errorf("aborted")
 	default:
 		return fmt.Errorf("unknown PDU type:%d", a.DataType)
@@ -127,7 +130,7 @@ func (d *Decoder) apduError(a *bactype.APDU) error {
 	if !ok {
 		return fmt.Errorf("unable to decode error class")
 	}
-	a.Error.Class = c
+	a.Error.Class = errorclass.ErrorClass(c)
 
 	code, err := d.AppData()
 	if err != nil {
@@ -138,7 +141,7 @@ func (d *Decoder) apduError(a *bactype.APDU) error {
 	if !ok {
 		return fmt.Errorf("unable to decode error code")
 	}
-	a.Error.Code = c
+	a.Error.Code = errorcode.ErrorCode(c)
 
 	return nil
 }
@@ -221,11 +224,11 @@ func (meta *APDUMetadata) setSegmentedAccepted(b bool) {
 	meta.setInfoMask(b, apduMaskSegmentedAccepted)
 }
 
-func (meta *APDUMetadata) setDataType(t bactype.PDUType) {
+func (meta *APDUMetadata) setDataType(t pdutype.PDUType) {
 	// clean the first 4 bits
 	*meta = (*meta & APDUMetadata(0xF0)) | APDUMetadata(t)
 }
-func (meta *APDUMetadata) DataType() bactype.PDUType {
+func (meta *APDUMetadata) DataType() pdutype.PDUType {
 	// clean the first 4 bits
-	return bactype.PDUType(0xF0) & bactype.PDUType(*meta)
+	return pdutype.PDUType(0xF0) & pdutype.PDUType(*meta)
 }

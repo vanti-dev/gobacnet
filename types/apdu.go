@@ -31,7 +31,11 @@ License.
 
 package types
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/vanti-dev/gobacnet/enum/pdutype"
+)
 
 type ServiceConfirmed uint8
 type ServiceUnconfirmed uint8
@@ -106,7 +110,7 @@ const (
 
 // APDU - Application Protocol Data Unit
 type APDU struct {
-	DataType                  PDUType
+	DataType                  pdutype.PDUType
 	SegmentedMessage          bool
 	MoreFollows               bool
 	SegmentedResponseAccepted bool
@@ -117,33 +121,15 @@ type APDU struct {
 	WindowNumber              uint8
 	Service                   ServiceConfirmed
 	UnconfirmedService        ServiceUnconfirmed
-	Error                     struct {
-		Class uint32
-		Code  uint32
-	}
+	Error                     Error
 
 	// This is the raw data passed based on the service
 	RawData []byte
 }
 
-// pduType encomposes all valid pdus.
-type PDUType uint8
-
-// pdu requests
-const (
-	ConfirmedServiceRequest   PDUType = 0
-	UnconfirmedServiceRequest PDUType = 0x10
-	SimpleAck                 PDUType = 0x20
-	ComplexAck                PDUType = 0x30
-	SegmentAck                PDUType = 0x40
-	Error                     PDUType = 0x50
-	Reject                    PDUType = 0x60
-	Abort                     PDUType = 0x70
-)
-
 // IsConfirmedServiceRequest checks to see if the APDU is in the list of known services
 func (a *APDU) IsConfirmedServiceRequest() bool {
-	return (0xF0 & a.DataType) == ConfirmedServiceRequest
+	return (0xF0 & a.DataType) == pdutype.ConfirmedServiceRequest
 }
 
 func (s *ServiceConfirmed) String() string {

@@ -32,11 +32,11 @@ License.
 package gobacnet
 
 import (
-	"fmt"
 	"net"
 	"os"
 
 	"github.com/vanti-dev/gobacnet/encoding"
+	"github.com/vanti-dev/gobacnet/enum/pdutype"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
@@ -86,7 +86,7 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 		}
 
 		switch apdu.DataType {
-		case bactype.UnconfirmedServiceRequest:
+		case pdutype.UnconfirmedServiceRequest:
 			if apdu.UnconfirmedService == bactype.ServiceUnconfirmedIAm {
 				dec = encoding.NewDecoder(apdu.RawData)
 				var iam bactype.IAm
@@ -116,27 +116,26 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 			} else {
 				c.Log.Errorf("Unconfirmed: %d %v", apdu.UnconfirmedService, apdu.RawData)
 			}
-		case bactype.SimpleAck:
+		case pdutype.SimpleAck:
 			c.Log.Debug("Received Simple Ack")
 			err := c.tsm.Send(apdu.InvokeId, send)
 			if err != nil {
 				return
 			}
-		case bactype.ComplexAck:
+		case pdutype.ComplexAck:
 			c.Log.Debug("Received Complex Ack")
 			err := c.tsm.Send(apdu.InvokeId, send)
 			if err != nil {
 				return
 			}
-		case bactype.ConfirmedServiceRequest:
+		case pdutype.ConfirmedServiceRequest:
 			c.Log.Debug("Received  Confirmed Service Request")
 			err := c.tsm.Send(apdu.InvokeId, send)
 			if err != nil {
 				return
 			}
-		case bactype.Error:
-			err := fmt.Errorf("Error Class %d Code %d", apdu.Error.Class, apdu.Error.Code)
-			err = c.tsm.Send(apdu.InvokeId, err)
+		case pdutype.Error:
+			err := c.tsm.Send(apdu.InvokeId, apdu.Error)
 			if err != nil {
 				c.Log.Debugf("unable to send error to %d: %v", apdu.InvokeId, err)
 			}

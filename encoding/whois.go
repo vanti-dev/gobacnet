@@ -32,12 +32,13 @@ License.
 package encoding
 
 import (
+	"github.com/vanti-dev/gobacnet/enum/pdutype"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
 func (e *Encoder) WhoIs(low, high int32) error {
 	apdu := bactype.APDU{
-		DataType:           bactype.UnconfirmedServiceRequest,
+		DataType:           pdutype.UnconfirmedServiceRequest,
 		UnconfirmedService: bactype.ServiceUnconfirmedWhoIs,
 	}
 	e.write(apdu.DataType)

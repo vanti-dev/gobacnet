@@ -33,9 +33,11 @@ package gobacnet
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/vanti-dev/gobacnet/encoding"
+	"github.com/vanti-dev/gobacnet/enum/errorcode"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
@@ -132,6 +134,13 @@ func (c *Client) ReadProperties(ctx context.Context, dev bactype.Device, propert
 	case <-ctx.Done():
 		return res, err
 	default:
+	}
+
+	// errors that were sent from the server
+	if bacErr := (bactype.Error{}); errors.As(err, &bacErr) {
+		if bacErr.Code == errorcode.UnknownObject {
+			return out, err
+		}
 	}
 
 	// todo: be more careful retrying only when we think it might succeed - e.g. check for "service not supported"

@@ -3,12 +3,17 @@ package encoding
 import (
 	"fmt"
 
+	"go.uber.org/multierr"
+
+	"github.com/vanti-dev/gobacnet/enum/errorclass"
+	"github.com/vanti-dev/gobacnet/enum/errorcode"
+	"github.com/vanti-dev/gobacnet/enum/pdutype"
 	bactype "github.com/vanti-dev/gobacnet/types"
 )
 
 func (e *Encoder) ReadMultiplePropertyAck(invokeID uint8, data bactype.ReadMultipleProperty) error {
 	a := bactype.APDU{
-		DataType: bactype.ComplexAck,
+		DataType: pdutype.ComplexAck,
 		Service:  bactype.ServiceConfirmedReadPropMultiple,
 		InvokeId: invokeID,
 	}
@@ -71,14 +76,14 @@ func (d *Decoder) ReadMultiplePropertyAck(data *bactype.ReadMultipleProperty) er
 	return d.Error()
 }
 
-func (d *Decoder) bacError(errorClass, errorCode *uint32) error {
+func (d *Decoder) bacError(bacErr *bactype.Error) error {
 	data, err := d.AppData()
 	if err != nil {
 		return err
 	}
 	switch val := data.(type) {
 	case uint32:
-		*errorClass = val
+		bacErr.Class = errorclass.ErrorClass(val)
 	default:
 		return fmt.Errorf("receive bacnet error of unknown type")
 	}
@@ -89,7 +94,7 @@ func (d *Decoder) bacError(errorClass, errorCode *uint32) error {
 	}
 	switch val := data.(type) {
 	case uint32:
-		*errorCode = val
+		bacErr.Code = errorcode.ErrorCode(val)
 	default:
 		return fmt.Errorf("receive bacnet error of unknown type")
 	}
@@ -97,6 +102,7 @@ func (d *Decoder) bacError(errorClass, errorCode *uint32) error {
 }
 
 func (d *Decoder) objectsWithData(objects *[]bactype.Object) error {
+	var errs []error
 	obj := bactype.Object{}
 	for d.Error() == nil && d.len() > 0 {
 		obj.Properties = []bactype.Property{}
@@ -153,53 +159,61 @@ func (d *Decoder) objectsWithData(objects *[]bactype.Object) error {
 				prop.ArrayIndex = ArrayAll
 			}
 
-			// Tag 4 - Opening Tag
-			expectedTag = 4
-			if tag != expectedTag {
-				if tag == 5 {
-					var class, code uint32
-					err := d.bacError(&class, &code)
-					if err != nil {
-						return err
-					}
-					return fmt.Errorf("class %d code %d", class, code)
-				}
-				return &ErrorIncorrectTag{Expected: expectedTag, Given: tag}
-			}
-			if !meta.isOpening() {
-				return &ErrorWrongTagType{OpeningTag}
-			}
-			data, err := d.AppData()
-			if err != nil {
-				return err
-			}
-			prop.Data = data
-			obj.Properties = append(obj.Properties, prop)
-
-			tag, meta = d.tagNumber()
-			expectedTag = 4
-			if tag != expectedTag {
-				return &ErrorIncorrectTag{Expected: expectedTag, Given: tag}
-			}
-			if !meta.isClosing() {
-				return &ErrorWrongTagType{ClosingTag}
-			}
-
-			tag, meta, length = d.tagNumberAndValue()
-			// Tag 5 - (Optional) Error Code
-			expectedTag = 5
-			if tag == expectedTag {
-				// We have an error
+			switch tag {
+			case 4: // Property Value
 				if !meta.isOpening() {
 					return &ErrorWrongTagType{OpeningTag}
 				}
+				data, err := d.AppData()
+				if err != nil {
+					return err
+				}
+				prop.Data = data
+				obj.Properties = append(obj.Properties, prop)
+
 				tag, meta = d.tagNumber()
+				expectedTag = 4
+				if tag != expectedTag {
+					return &ErrorIncorrectTag{Expected: expectedTag, Given: tag}
+				}
 				if !meta.isClosing() {
 					return &ErrorWrongTagType{ClosingTag}
 				}
+				tag, meta, length = d.tagNumberAndValue()
+
+			case 5: // Property Access Error
+				if !meta.isOpening() {
+					return &ErrorWrongTagType{OpeningTag}
+				}
+				var bacErr bactype.Error
+				err := d.bacError(&bacErr)
+				if err != nil {
+					return err
+				}
+				errs = append(errs, bactype.PropertyAccessError{
+					Err:      bacErr,
+					ObjectID: obj.ID,
+					Property: prop.ID,
+				})
+
+				tag, meta = d.tagNumber()
+				if tag != 5 {
+					return &ErrorIncorrectTag{Expected: 5, Given: tag}
+				}
+				if !meta.isClosing() {
+					return &ErrorWrongTagType{ClosingTag}
+				}
+				tag, meta, length = d.tagNumberAndValue()
+
+			default:
+				return &ErrorIncorrectTag{Expected: expectedTag, Given: tag}
 			}
 		}
 		*objects = append(*objects, obj)
 	}
-	return d.Error()
+	// prefer parse errors
+	if err := d.Error(); err != nil {
+		return err
+	}
+	return multierr.Combine(errs...)
 }
