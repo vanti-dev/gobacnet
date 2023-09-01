@@ -1,4 +1,5 @@
-/*Copyright (C) 2017 Alex Beltran
+/*
+Copyright (C) 2017 Alex Beltran
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -77,9 +78,10 @@ func generalSimpleDataTypes(t *testing.T, generic bool) func(t *testing.T) {
 
 		str := "my pizza pizza"
 		objID := types.ObjectID{93, 42}
+		bs := types.BitString{[]byte{0b10110000}, 4}
 
 		if generic {
-			values := []interface{}{real, double, boolean, !boolean, small, medium, wtf, large, str, objID}
+			values := []interface{}{real, double, boolean, !boolean, small, medium, wtf, large, str, objID, bs}
 			for _, v := range values {
 				enc.AppData(v)
 			}
@@ -111,6 +113,9 @@ func generalSimpleDataTypes(t *testing.T, generic bool) func(t *testing.T) {
 
 			enc.tag(tagInfo{ID: tagObjectID, Context: appLayerContext, Value: objectIDLen})
 			enc.objectId(objID.Type, objID.Instance)
+
+			enc.tag(tagInfo{ID: tagBitString, Context: appLayerContext, Value: 2})
+			enc.bitString(bs)
 		}
 
 		if err := enc.Error(); err != nil {
@@ -128,10 +133,42 @@ func generalSimpleDataTypes(t *testing.T, generic bool) func(t *testing.T) {
 		t.Run("Encoding uint32", subTestSimpleData(t, dec, large))
 		t.Run("Encoding string", subTestSimpleData(t, dec, str))
 		t.Run("Encoding object id", subTestSimpleData(t, dec, objID))
+		t.Run("Encoding bit string", subTestSimpleData(t, dec, bs))
 
 		if err := dec.Error(); err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestAppData_specExamples(t *testing.T) {
+	tests := []struct {
+		name string
+		in   interface{}
+		out  []byte
+	}{
+		{"Bit String", types.BitString{[]byte{0b10101000}, 3}, []byte{0x82, 0x03, 0xA8}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			enc := NewEncoder()
+			err := enc.AppData(tt.in)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(enc.Bytes(), tt.out) {
+				t.Errorf("Encoder.AppData() = %x, want %x", enc.Bytes(), tt.out)
+			}
+
+			dec := NewDecoder(tt.out)
+			out, err := dec.AppData()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(out, tt.in) {
+				t.Errorf("Decoder.AppData() = %v, want %v", out, tt.in)
+			}
+		})
 	}
 }
 

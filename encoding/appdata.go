@@ -120,6 +120,26 @@ func (d *Decoder) octetstring(b *[]byte, len int) {
 	d.decode(b)
 }
 
+func (e *Encoder) bitString(bs bactype.BitString) {
+	if bs.Len() == 0 {
+		e.write(uint8(0))
+		return
+	}
+	e.write(bs.IgnoreTrailingBits)
+	e.write(bs.Bytes)
+}
+
+func (d *Decoder) bitString(bs *bactype.BitString, len int) {
+	d.decode(&bs.IgnoreTrailingBits)
+	if bs.IgnoreTrailingBits == 0 {
+		bs.Bytes = nil
+		return
+	}
+	bytes := make([]byte, len-1)
+	d.decode(&bytes)
+	bs.Bytes = bytes
+}
+
 func (e *Encoder) date(dt bactype.Date) {
 	// We don't want to override an unspecified time date
 	if dt.Year != bactype.UnspecifiedTime {
@@ -215,6 +235,10 @@ func (e *Encoder) AppData(i interface{}) error {
 		e.tag(tagInfo{ID: tagUint, Context: appLayerContext, Value: uint32(length)})
 		e.unsigned(val)
 
+	case bactype.BitString:
+		length := len(val.Bytes) + 1
+		e.tag(tagInfo{ID: tagBitString, Context: appLayerContext, Value: uint32(length)})
+		e.bitString(val)
 	// Enumerated is pretty much a wrapper for a uint32 with an enumerated associated with it.
 	case bactype.Enumerated:
 		v := uint32(val)
@@ -238,8 +262,8 @@ func (e *Encoder) AppData(i interface{}) error {
 }
 
 func (d *Decoder) AppData() (interface{}, error) {
-	tag, _, lenvalue := d.tagNumberAndValueLen()
-	len := int(lenvalue)
+	tag, _, valueLen := d.tagNumberAndValueLen()
+	len := int(valueLen)
 
 	switch tag {
 	case tagNull:
@@ -271,7 +295,9 @@ func (d *Decoder) AppData() (interface{}, error) {
 		err := d.string(&s, len-1)
 		return s, err
 	case tagBitString:
-		return nil, fmt.Errorf("decoding bit strings is currently unsupported")
+		var bs bactype.BitString
+		d.bitString(&bs, len)
+		return bs, d.Error()
 	case tagEnumerated:
 		return d.enumerated(len), d.Error()
 	case tagDate:
