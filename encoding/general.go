@@ -48,24 +48,24 @@ func valueLength(value uint32) int {
 /* from clause 20.2.1.3.2 Constructed Data */
 /* true if the tag is an opening tag */
 func isOpeningTag(x uint8) bool {
-	return ((x & 0x07) == 6)
+	return (x & 0x07) == 6
 }
 
 /* from clause 20.2.1.3.2 Constructed Data */
 /* true if the tag is a closing tag */
 func isClosingTag(x uint8) bool {
-	return ((x & 0x07) == 7)
+	return (x & 0x07) == 7
 }
 
 type tagMeta uint8
 
-const tagMask tagMeta = 7
-const openingMask tagMeta = 6
-const closingMask tagMeta = 7
+const lvtMask tagMeta = 0b111 // Length/Value/Type mask, Clause 20.2.1.3
+const openingMask tagMeta = 0b110
+const closingMask tagMeta = 0b111
 
-const extendValueBits tagMeta = 5
+const extendValueBits tagMeta = 0b101
 
-const contextSpecificBit = 0x08
+const contextSpecificBit = 0b1000 // Clause 20.2.1.1
 
 func (t *tagMeta) setClosing() {
 	t.setContextSpecific()
@@ -73,7 +73,7 @@ func (t *tagMeta) setClosing() {
 }
 
 func (t *tagMeta) isClosing() bool {
-	return ((*t & closingMask) == closingMask)
+	return (*t & closingMask) == closingMask
 }
 
 func (t *tagMeta) setOpening() {
@@ -82,7 +82,7 @@ func (t *tagMeta) setOpening() {
 }
 
 func (t *tagMeta) isOpening() bool {
-	return ((*t & openingMask) == openingMask)
+	return (*t & openingMask) == openingMask
 }
 
 func (t *tagMeta) Clear() {
@@ -94,14 +94,17 @@ func (t *tagMeta) setContextSpecific() {
 }
 
 func (t *tagMeta) isContextSpecific() bool {
-	return ((*t & contextSpecificBit) > 0)
+	return (*t & contextSpecificBit) > 0
 }
 
+// isExtendedValue returns true if the value length is encoded in the next bytes.
+// When true, the next 1, 3 or 5 bytes of the encoding contain the length (in bytes) of the value.
+// See clause 20.2.1.3.1.
 func (t *tagMeta) isExtendedValue() bool {
-	return (*t & tagMask) == extendValueBits
+	return (*t & lvtMask) == extendValueBits
 }
 func (t *tagMeta) isExtendedTagNumber() bool {
-	return ((*t & 0xF0) == 0xF0)
+	return (*t & 0xF0) == 0xF0
 }
 
 // setInfoMask takes an input in, and make a bit either 0, or 1 depending on the
@@ -116,8 +119,11 @@ func setInfoMask(in byte, b bool, mask byte) byte {
 	}
 }
 
-/* from clause 20.1.2.4 max-segments-accepted and clause 20.1.2.5 max-APDU-length-accepted
-returns the encoded octet */
+/*
+	from clause 20.1.2.4 max-segments-accepted and clause 20.1.2.5 max-APDU-length-accepted
+
+returns the encoded octet
+*/
 func (e *Encoder) maxSegsMaxApdu(maxSegs uint, maxApdu uint) {
 	x := encodeMaxSegsMaxApdu(maxSegs, maxApdu)
 	e.write(x)

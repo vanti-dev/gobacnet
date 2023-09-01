@@ -83,21 +83,21 @@ func TestNPDU(t *testing.T) {
 	log.Printf("bytes: %s", hex.EncodeToString(e.Bytes()))
 	subTestNPDU(t, n)
 	//
-	//n.NetworkLayerMessageType = 20
-	//t.Run("Testing Message Type", subTestNPDU(t, n))
+	// n.NetworkLayerMessageType = 20
+	// t.Run("Testing Message Type", subTestNPDU(t, n))
 	//
-	//n.NetworkLayerMessageType = 0
-	//n.IsNetworkLayerMessage = false
-	//n.ExpectingReply = true
-	//t.Run("Testing Expecting Reply", subTestNPDU(t, n))
-	//subTestNPDU(t, n)
+	// n.NetworkLayerMessageType = 0
+	// n.IsNetworkLayerMessage = false
+	// n.ExpectingReply = true
+	// t.Run("Testing Expecting Reply", subTestNPDU(t, n))
+	// subTestNPDU(t, n)
 
 	n.Destination = &bactype.Address{
 		Net: 50011,
 		Adr: []uint8{1},
 		Len: 1,
 	}
-	//n.HopCount = 21
+	// n.HopCount = 21
 	e = NewEncoder()
 	e.NPDU(n)
 	log.Printf("bytes: %s", hex.EncodeToString(e.Bytes()))
@@ -383,13 +383,13 @@ func TestTag(t *testing.T) {
 	b := e.Bytes()
 	d := NewDecoder(b)
 	for i, tag := range inTag {
-		outTag, _, value := d.tagNumberAndValue()
+		outTag, _, length := d.tagNumberAndValueLen()
 		if tag != outTag {
 			t.Fatalf("Test[%d]: Tag was not processed propertly. Expected %d, got %d", i, tag, outTag)
 		}
 
-		if value != inValue[i] {
-			t.Fatalf("Test[%d]: Value was not processed propertly. Expected %d, got %d", i, inValue[i], value)
+		if length != inValue[i] {
+			t.Fatalf("Test[%d]: Value was not processed propertly. Expected %d, got %d", i, inValue[i], length)
 		}
 	}
 

@@ -109,7 +109,7 @@ func (d *Decoder) objectsWithData(objects *[]bactype.Object) error {
 
 		// Tag 0 - Object ID
 		var expectedTag uint8
-		tag, meta, length := d.tagNumberAndValue()
+		tag, meta, length := d.tagNumberAndValueLen()
 		objType, instance := d.objectId()
 
 		if tag != expectedTag {
@@ -132,7 +132,7 @@ func (d *Decoder) objectsWithData(objects *[]bactype.Object) error {
 			return &ErrorWrongTagType{OpeningTag}
 		}
 		// Tag 2 - Property Tag
-		tag, meta, length = d.tagNumberAndValue()
+		tag, meta, length = d.tagNumberAndValueLen()
 
 		for d.len() > 0 && tag == 2 && !meta.isClosing() {
 			expectedTag = 2
@@ -151,7 +151,7 @@ func (d *Decoder) objectsWithData(objects *[]bactype.Object) error {
 				if !meta.isContextSpecific() {
 					return &ErrorWrongTagType{ContextTag}
 				}
-				length = d.value(meta)
+				length = d.valueLen(meta)
 				prop.ArrayIndex = d.unsigned(int(length))
 				// Move to the next tag
 				tag, meta = d.tagNumber()
@@ -179,7 +179,7 @@ func (d *Decoder) objectsWithData(objects *[]bactype.Object) error {
 				if !meta.isClosing() {
 					return &ErrorWrongTagType{ClosingTag}
 				}
-				tag, meta, length = d.tagNumberAndValue()
+				tag, meta, length = d.tagNumberAndValueLen()
 
 			case 5: // Property Access Error
 				if !meta.isOpening() {
@@ -203,7 +203,7 @@ func (d *Decoder) objectsWithData(objects *[]bactype.Object) error {
 				if !meta.isClosing() {
 					return &ErrorWrongTagType{ClosingTag}
 				}
-				tag, meta, length = d.tagNumberAndValue()
+				tag, meta, length = d.tagNumberAndValueLen()
 
 			default:
 				return &ErrorIncorrectTag{Expected: expectedTag, Given: tag}

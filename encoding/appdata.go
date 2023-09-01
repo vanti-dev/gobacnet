@@ -238,7 +238,7 @@ func (e *Encoder) AppData(i interface{}) error {
 }
 
 func (d *Decoder) AppData() (interface{}, error) {
-	tag, _, lenvalue := d.tagNumberAndValue()
+	tag, _, lenvalue := d.tagNumberAndValueLen()
 	len := int(lenvalue)
 
 	switch tag {

@@ -66,20 +66,20 @@ func (d *Decoder) WhoIs(low, high *int32) error {
 	}
 	// Tag 0 - Low Value
 	var expectedTag uint8
-	tag, _, value := d.tagNumberAndValue()
+	tag, _, length := d.tagNumberAndValueLen()
 	if tag != expectedTag {
 		return &ErrorIncorrectTag{Expected: expectedTag, Given: tag}
 	}
-	l := d.unsigned(int(value))
+	l := d.unsigned(int(length))
 	*low = int32(l)
 
 	// Tag 1 - High Value
 	expectedTag = 1
-	tag, _, value = d.tagNumberAndValue()
+	tag, _, length = d.tagNumberAndValueLen()
 	if tag != expectedTag {
 		return &ErrorIncorrectTag{Expected: expectedTag, Given: tag}
 	}
-	h := d.unsigned(int(value))
+	h := d.unsigned(int(length))
 	*high = int32(h)
 
 	return d.Error()

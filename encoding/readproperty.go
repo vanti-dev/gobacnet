@@ -140,7 +140,7 @@ func (d *Decoder) ReadProperty(data *bactype.ReadPropertyData) error {
 	}
 	expectedTag++
 
-	lenValue := d.value(meta)
+	lenValue := d.valueLen(meta)
 
 	var prop bactype.Property
 	prop.ID = d.propertyId(int(lenValue))
@@ -156,7 +156,7 @@ func (d *Decoder) ReadProperty(data *bactype.ReadPropertyData) error {
 
 		// Tag 2: Array Length (OPTIONAL)
 		var lenValue uint32
-		lenValue = d.value(meta)
+		lenValue = d.valueLen(meta)
 
 		var openTag uint8
 		// I tried to not use magic numbers but it doesn't look like it can be avoid

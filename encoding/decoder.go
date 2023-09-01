@@ -99,7 +99,10 @@ func (d *Decoder) tagNumber() (tag uint8, meta tagMeta) {
 	return uint8(meta) >> 4, meta
 }
 
-func (d *Decoder) value(meta tagMeta) (value uint32) {
+// valueLen decodes and returns the length of the value in bytes.
+// 0 will be returned for "Constructed Data", data that is encoded as open-tag, data, close-tag.
+// If the tag/value is of type boolean, value will be 0 for false and 1 for true.
+func (d *Decoder) valueLen(meta tagMeta) (value uint32) {
 	if meta.isExtendedValue() {
 		var val uint8
 		d.decode(&val)
@@ -122,13 +125,11 @@ func (d *Decoder) value(meta tagMeta) (value uint32) {
 	} else if meta.isOpening() || meta.isClosing() {
 		return 0
 	}
-	return uint32(meta & 0x07)
+	return uint32(meta & 0b111)
 }
-func (d *Decoder) tagNumberAndValue() (tag uint8, meta tagMeta, value uint32) {
+func (d *Decoder) tagNumberAndValueLen() (tag uint8, meta tagMeta, valueLen uint32) {
 	tag, meta = d.tagNumber()
-	// It must be a non extended/small value
-	// Note this is a mask of the last 3 bits
-	return tag, meta, d.value(meta)
+	return tag, meta, d.valueLen(meta)
 }
 
 func (d *Decoder) objectId() (objectType bactype.ObjectType, instance bactype.ObjectInstance) {
