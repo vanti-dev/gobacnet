@@ -87,8 +87,8 @@ func (d *Decoder) tagIncr() {
 // contexTag decoder
 
 // Returns both a tag and additional meta data stored in this byte. If it is of
-// extended type, then that means that the entire first byte is metadata, else
-// the firrst 4 bytes store the tag
+// extended type, then that means that the entire first byte is metadata and the
+// next byte is the tag, else the first 4 bits store the tag and the rest is metadata.
 func (d *Decoder) tagNumber() (tag uint8, meta tagMeta) {
 	// Read the first value
 	d.decode(&meta)
