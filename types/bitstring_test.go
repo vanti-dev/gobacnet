@@ -41,3 +41,11 @@ func TestBitString_Len(t *testing.T) {
 		t.Error("len failed")
 	}
 }
+
+func TestBitString_String(t *testing.T) {
+	bs := BitString{[]byte{0b10101010, 0b01010101}, 4}
+	want := "10101010_0101"
+	if bs.String() != want {
+		t.Errorf("String() = %v, want %v", bs.String(), want)
+	}
+}

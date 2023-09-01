@@ -1,5 +1,10 @@
 package types
 
+import (
+	"fmt"
+	"strings"
+)
+
 // BitString is the type to use when you need to represent a BACnet BIT STRING type.
 // See clause 20.2.10.
 type BitString struct {
@@ -21,6 +26,29 @@ func (b BitString) At(i int) bool {
 }
 
 // Len returns the number of bits in the BitString.
-func (b BitString) Len() int64 {
-	return int64(len(b.Bytes))*8 - int64(b.IgnoreTrailingBits)
+func (b BitString) Len() uint64 {
+	if len(b.Bytes) == 0 {
+		return 0
+	}
+	return uint64(len(b.Bytes))*8 - uint64(b.IgnoreTrailingBits)
+}
+
+func (b BitString) String() string {
+	if b.Len() == 0 {
+		return "[]"
+	}
+	var s strings.Builder
+	last := len(b.Bytes) - 1
+	for i, octet := range b.Bytes {
+		if i > 0 {
+			s.WriteString("_")
+		}
+		if i == last {
+			str := fmt.Sprintf("%08b", octet)
+			s.WriteString(str[:8-int(b.IgnoreTrailingBits)])
+		} else {
+			fmt.Fprintf(&s, "%08b", octet)
+		}
+	}
+	return s.String()
 }
