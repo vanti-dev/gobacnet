@@ -55,7 +55,7 @@ func (c *Client) WriteProperty(ctx context.Context, dest bactype.Device, wp bact
 		}
 		switch v := raw.(type) {
 		case error:
-			return err
+			return v
 		case []byte:
 			b = v
 		default:

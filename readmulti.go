@@ -101,7 +101,7 @@ func (c *Client) sendReadMultipleProperty(ctx context.Context, id uint8, dev bac
 	var b []byte
 	switch v := raw.(type) {
 	case error:
-		return out, err
+		return out, v
 	case []byte:
 		b = v
 	default:
