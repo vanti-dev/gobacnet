@@ -83,7 +83,8 @@ func (c *Client) ReadProperty(ctx context.Context, dest bactype.Device, rp bacty
 			continue
 		}
 
-		raw, err := c.tsm.Receive(ctx, id)
+		var raw interface{}
+		raw, err = c.tsm.Receive(ctx, id)
 		if err != nil {
 			continue
 		}
