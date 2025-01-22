@@ -135,6 +135,7 @@ func (c *Client) handleMsg(src *net.UDPAddr, b []byte) {
 				return
 			}
 		case pdutype.Error:
+			c.Log.Debug("Received Error")
 			err := c.tsm.Send(apdu.InvokeId, apdu.Error)
 			if err != nil {
 				c.Log.Debugf("unable to send error to %d: %v", apdu.InvokeId, err)

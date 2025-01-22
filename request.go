@@ -34,7 +34,6 @@ package gobacnet
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/vanti-dev/gobacnet/encoding"
 	bactype "github.com/vanti-dev/gobacnet/types"
@@ -79,7 +78,7 @@ func (c *Client) ReadProperty(ctx context.Context, dest bactype.Device, rp bacty
 		var out bactype.ReadPropertyData
 		_, err = c.send(dest.Addr, enc.Bytes())
 		if err != nil {
-			log.Print(err)
+			c.Log.Debugf("ReadProperty send error: %v", err)
 			continue
 		}
 
